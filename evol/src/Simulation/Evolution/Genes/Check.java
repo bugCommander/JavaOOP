@@ -1,9 +1,8 @@
-package Simulation.Evolution;
+package Simulation.Evolution.Genes;
 
 import Simulation.System.Command;
 
-public class Gene implements Command {
-
+public class Check implements Command {
     @Override
     public void next() {
 

@@ -22,7 +22,6 @@ import java.awt.*;
 public class SimWorld extends Application {
 final int W = 32;
 final int H = 32;
-Cell [][] cells = new Cell[W][H];
 
 
     @Override
@@ -39,8 +38,6 @@ Cell [][] cells = new Cell[W][H];
         GraphicsContext renderer = canvas.getGraphicsContext2D();
         //// отрисовка? квадратики fill // strok /// гребаная джава
         init_world(renderer);
-        first_life(8,16);
-        drawShapes(renderer);
 
 
 
@@ -70,39 +67,6 @@ Cell [][] cells = new Cell[W][H];
 
         }
 
-
-    private void drawShapes(GraphicsContext gc){
-       for(int i = 0; i < W; ++i){
-           for(int j = 0; j < H; ++j) {
-               if (cells[i][j] == null || cells[i][j].state==State.empty) {
-                   gc.strokeRect(i*10+40,j*10+40,40,40);
-                   gc.setFill(Color.GREY);
-                   gc.fillRect(i * 10 + 40, j * 10 + 40, 40, 40);
-                   /// continue;
-
-               } else if (cells[i][j].state == State.alive) {
-                   gc.strokeRect(i*10+40,j*10+40,40,40);
-                   gc.setFill(Color.RED);
-                   gc.fillRect(i * 10 + 40, j * 10 + 40, 10, 10);
-               } else if (cells[i][j].state == State.dead) {
-                   gc.strokeRect(i*10+40,j*10+40,40,40);
-                   gc.setFill(Color.PURPLE);
-                   gc.fillRect(i * 10 + 40, j * 10 + 40, 10, 10);
-
-               }
-           }
-       }
-
-
-
-    }
-    void first_life(int pos_x, int pos_y){
-        Cell first = new Cell();
-        first.x = pos_x;
-        first.y = pos_y;
-        cells[first.x][first.y] = first;
-
-    }
 
 
 

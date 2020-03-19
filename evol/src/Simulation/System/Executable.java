@@ -1,6 +1,6 @@
 package Simulation.System;
 
-public interface Executor {
+public interface Executable {
     void execute(Command command);
 
 }

@@ -2,21 +2,26 @@ package Simulation.Evolution;
 
 import Simulation.System.Host;
 
-public class Cell implements Host {
-    int posX;
-    int posY;
-    int energy;
-    Executor mind;
+public class Cell extends Host {
+    ///Executor mind;
     Genome genome;
-    CellState statemod;
-    Cell(int x,int y){
-        posX = x;
-        posY = y;
-        energy = 10;
+    public State state;
+
+    public Cell() {
+    }
+
+    ;
+
+    public Cell(int x, int y, int hp) {
+        super(x, y, hp);
         genome = new Genome();
-        mind = new Executor();
-        statemod = new CellState();
-        statemod.setState(CellState.State.ALIVE);
+        /// mind = new Executor(this);
+        state = State.ALIVE;
+    }
+
+
+    void checkState() {
+
     }
 
     public void step() {
@@ -24,21 +29,4 @@ public class Cell implements Host {
     }
 }
 
-class CellState {
-    enum State {
-        DEAD,
-        ALIVE,
-        EMPTY
-    }
 
-    State state;
-
-    public void setState(State state) {
-        this.state = state;
-
-    }
-
-    public State getState() {
-        return this.state;
-    }
-}

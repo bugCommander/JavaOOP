@@ -9,8 +9,10 @@ import java.util.ArrayList;
 
 public class Genome implements CommandContainer {
     ArrayList<Command> genom;
+    int pointer;
     Genome(){
         genom = new ArrayList<>();
+        pointer = 0;
 
     }
 

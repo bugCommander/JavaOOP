@@ -5,6 +5,16 @@ import Simulation.Evolution.Executor;
 import Simulation.Evolution.Genome;
 
 public abstract class Host {
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
+
+    boolean enable;
+
+    public boolean isEnable() {
+        return enable;
+    }
+
     public int getPosX() {
         return posX;
     }
@@ -24,6 +34,11 @@ public abstract class Host {
     }
 
     int posY;
+
+    public int getEnergy() {
+        return energy;
+    }
+
     int energy;
     int rotation;
     public void changeEnergy(int offset){
@@ -41,6 +56,7 @@ public abstract class Host {
 
 
     public Host(int x, int y, int hp) {
+        enable = true;
         posX = x;
         posY = y;
         energy = hp;
@@ -49,7 +65,7 @@ public abstract class Host {
     }
     public Host(){};
 
-    public abstract void step();
+    public abstract void step(Executable executor) throws Exception;
 }
 
 

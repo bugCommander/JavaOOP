@@ -4,6 +4,8 @@ import Simulation.System.Command;
 import Simulation.System.Host;
 
 public class Move implements Command {
+    final int W = 16;
+    final int H = 16;
 
 
     @Override
@@ -45,6 +47,26 @@ public class Move implements Command {
                 break;
 
         }
+
+
+        System.out.print(" X = ");
+        System.out.print(host.getPosX());
+        System.out.print(" Y = ");
+       System.out.print(host.getPosY());
+       System.out.println();
+       if(host.getPosX() < 0 ){
+           host.setPosX(host.getPosX()+W);
+       }
+        if(host.getPosY() < 0 ){
+            host.setPosY(host.getPosY()+H);
+        }
+        if(host.getPosX()>=W){
+            host.setPosX(host.getPosX() - W);
+        }
+        if(host.getPosY()>=H){
+            host.setPosY(host.getPosY() - H);
+        }
+
 
 
     }

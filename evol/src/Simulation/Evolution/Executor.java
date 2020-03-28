@@ -1,5 +1,6 @@
 package Simulation.Evolution;
 
+import Simulation.Evolution.Cells.Cell;
 import Simulation.System.Command;
 import Simulation.System.Host;
 

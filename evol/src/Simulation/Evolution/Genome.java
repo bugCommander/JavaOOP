@@ -13,6 +13,12 @@ public class Genome implements CommandContainer {
         genom = new ArrayList<>();
 
     }
+    public Genome(Genome copyable){ ////copy constr
+        this.genom = new ArrayList<>(copyable.genom);
+    }
+    public  Genome copy(Genome copyable){ ///copy method
+        return new Genome(copyable);
+    }
 
 
     @Override

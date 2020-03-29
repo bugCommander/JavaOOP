@@ -3,8 +3,11 @@ package Simulation.System;
 
 import Simulation.Evolution.Executor;
 import Simulation.Evolution.Genome;
+import Simulation.Evolution.World;
 
 public abstract class Host {
+    public World world = null;
+
     public void setEnable(boolean enable) {
         this.enable = enable;
     }

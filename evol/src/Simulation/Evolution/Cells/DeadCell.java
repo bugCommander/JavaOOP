@@ -15,6 +15,9 @@ public class DeadCell extends Host {
             throw new Exception("executor should be Exec");
         }
         changeEnergy(-10);
+        Thread.sleep(250);
+
+        System.out.println(getEnergy());
 
     }
 }

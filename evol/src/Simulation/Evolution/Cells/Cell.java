@@ -2,95 +2,63 @@ package Simulation.Evolution.Cells;
 
 import Simulation.Evolution.Executor;
 import Simulation.Evolution.Genome;
-import Simulation.Evolution.World;
 import Simulation.System.Executable;
 import Simulation.System.Host;
-import Simulation.System.Type;
+import Simulation.System.Pair;
 
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class Cell extends Host {
     public Genome genome;
+    int pointer;
 
+
+
+
+    @Override
+    public void makeNeighbours(ArrayList<Host> cells, int hSize, int wSize) {
+        neighbours = new Host[8];
+            for(int i = 0;i <8;++i){
+                neighbours[i] = null;
+            }
+     cord = fill_cord();
+            for(int i = 0;i<8;++i){
+                cord[i].fix(wSize,hSize);
+            }
+
+
+
+        for(Host iterator: cells){
+            for(int i = 0; i < 8;++i) {
+                if (iterator.getPosX() == cord[i].x & iterator.getPosY() == cord[i].y) {
+                    neighbours[i] = iterator;
+                }
+            }
+
+
+        }
+
+    }
 
     public Cell(int x, int y, int hp) {
         super(x, y, hp);
         genome = new Genome();
+        pointer = 0;
     }
 
   public   Cell makeChild() {
-        int W = world.getW();
-        int H = world.getH();
-        int posX = this.getPosX();
-        int posY = this.getPosY();
-        int newX = 0;
-        int newY = 0;
-        for (int i = 0; i < 8; ++i) {
-            switch (i) {
-                case (0):
-                    newX = posX;
-                    newY = posY-1;
-
-                    break;
-                case (1):
-                    newX = posX+1;
-                    newY = posY -1;
-
-
-                    break;
-                case (2):
-                    newX = posX+1;
-                    newY = posY;
-                    break;
-                case (3):
-                    newX = posX+1;
-                    newY = posY+1;
-                    break;
-                case (4):
-                    newX = posX;
-                    newY = posY+1;
-
-                    break;
-                case (5):
-                    newX = posX-1;
-                    newY = posY +1;
-
-                    break;
-                case (6):
-                    newX = posX-1;
-                    newY = posY;
-
-                    break;
-                case (7):
-                    newX = posX-1;
-                    newY = posY-1;
-
-                    break;
-
-
-            }
-            if(newX<0){
-                newX +=W;
-            }else if(newX >=W){
-                newX -=W;
-            }
-
-            if(newY < 0){
-                newY +=H;
-            }
-            else if(newY >=H){
-                newY -=H;
-            }
-            if(world.isEmpty(newX,newY)){
-                Cell aux = new Cell(newX,newY,100);
-               aux.genome.addAllCommands(this.genome);
-               aux.world = this.world;
+        for(int i = 0; i < 8;++i){
+            if(neighbours[i]== null){
+               /// assert neighbours[i] != null;
+                Cell aux = new Cell(cord[i].x,cord[i].y,100);
+                aux.genome.addAllCommands(this.genome);
+                neighbours[i] = aux;
                 return aux;
 
-
             }
+
         }
+
 
         return null;
     }
@@ -101,17 +69,46 @@ public class Cell extends Host {
         if (!(executor instanceof Executor)) {
             throw new Exception("executor should be Exec");
         }
-        for (int i = 0; i < genome.size(); ++i) {
-            executor.execute(genome.getCommand(i), this);
-            if (this.getEnergy() <= 0) { ///осторожно
-                break;
 
-            }
-            Thread.sleep(100);
+            executor.execute(genome.getCommand(pointer), this);
+        ++pointer;
+        if(pointer >=genome.size()) {
+            pointer = 0;
         }
+
+            Thread.sleep(500);
+
 
 
     }
+    private  Pair[] fill_cord(){
+        Pair []cord = new Pair[8];
+        int posX = this.getPosX();
+        int posY = this.getPosY();
+        for(int i = 0; i < 8;++i){
+            cord[i] = new Pair();
+        }
+        cord[0].x = posX;
+        cord[0].y = posY-1;
+        cord[1].x = posX+1;
+        cord[1].y = posY- 1;
+        cord[2].x = posX+1;
+        cord[2].y = posY;
+        cord[3].x = posX+1;
+        cord[3].y = posY+1;
+        cord[4].x = posX;
+        cord[4].y = posY+1;
+        cord[5].x = posX-1;
+        cord[5].y = posY+1;
+        cord[6].x = posX -1;
+        cord[6].y = posY;
+        cord[7].x = posX -1;
+        cord[7].y = posY -1;
+
+        return cord;
+    }
 }
+
+
 
 

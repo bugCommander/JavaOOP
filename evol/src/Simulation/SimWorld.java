@@ -3,12 +3,11 @@ package Simulation;
 import Simulation.Evolution.Cells.Cell;
 import Simulation.Evolution.Cells.DeadCell;
 import Simulation.Evolution.Executor;
+import Simulation.Evolution.Genes.Cannibal;
 import Simulation.Evolution.Genes.Move;
 import Simulation.Evolution.Genes.Photosynthesis;
 import Simulation.Evolution.Genes.Rotate;
-import Simulation.Evolution.World;
 import Simulation.System.Host;
-import Simulation.System.Type;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Group;
@@ -21,18 +20,17 @@ import javafx.stage.Stage;
 import java.util.ArrayList;
 
 public class SimWorld extends Application {
-     final int W = 16;
-     final int H = 16;
-     public World world = new World(W,H);
+    final int W = 16;
+    final int H = 16;
     final int OFFSET = 40;
     final int RSIZE = 20;
-    ///int generation = 0;
+    int iteration = 0;
     ArrayList<Host> cells = new ArrayList<>();
     Executor executor = new Executor();
 
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
 
         primaryStage.setTitle("dafaq");
 
@@ -47,17 +45,16 @@ public class SimWorld extends Application {
 
 
     }
-    private void run(Canvas canvas){
+
+    private void run(Canvas canvas) {
         GraphicsContext renderer = canvas.getGraphicsContext2D();
-        CreateCell(8,8,100);
+        CreateCell(8, 8, 100);
+        cells.add(new DeadCell(7, 7, 100));
+        cells.add(new DeadCell(7, 8, 100));
+        cells.add(new DeadCell(8, 7, 100));
 
 
-
-
-
-
-
-        AnimationTimer at = new AnimationTimer(){
+        AnimationTimer at = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 try {
@@ -75,22 +72,17 @@ public class SimWorld extends Application {
     }
 
 
-     public void CreateCell(int x,int y,int energy) {
-        Cell aux = new Cell(x,y,energy);
-
-        ///aux.genome.addCommand(new Rotate());
-        /// aux.genome.addCommand(new Move());
-         aux.genome.addCommand(new Photosynthesis());
-         aux.genome.addCommand(new Photosynthesis());
-         aux.genome.addCommand(new Photosynthesis());
-         aux.genome.addCommand(new Photosynthesis());
-         world.addItem(x,y, Type.CELL);
-         aux.world = world;
-         cells.add(aux);
+    public void CreateCell(int x, int y, int energy) {
+        Cell aux = new Cell(x, y, energy);
+        aux.genome.addCommand(new Cannibal());
+        aux.genome.addCommand(new Move());
+        aux.genome.addCommand(new Rotate());
 
 
+        cells.add(aux);
 
-     }
+
+    }
 
     private void drawWorld(GraphicsContext gc) {
         for (int i = 0; i < W; ++i) {
@@ -104,54 +96,47 @@ public class SimWorld extends Application {
     }
 
     private void update() throws Exception {
-        ArrayList<Host>  deferred = new ArrayList<>();
+        ArrayList<Host> deferred = new ArrayList<>();
 
-        for(Host cell:cells){
-            if(cell.getEnergy() <=0){
-                if  (cell instanceof Cell){
-                    deferred.add(new DeadCell(cell.getPosX(),cell.getPosY(),100));
-                    world.addItem(cell.getPosX(),cell.getPosY(),Type.DEAD);
+        for (Host cell : cells) {
+            if (cell.getEnergy() <= 0) {
+                if (cell instanceof Cell) {
+                    deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
                 }
-                if(cell instanceof  DeadCell){
-                    world.addItem(cell.getPosX(),cell.getPosY(),Type.EMPTY);
-                }
+
                 cell.setEnable(false);
-            }
-            else {
+            } else {
+                cell.makeNeighbours(cells, H, W);
                 cell.step(executor);
 
                 if (cell.getEnergy() >= 150 && cell instanceof Cell) {
                     cell.changeEnergy(-100);
-                  Cell aux =   ((Cell) cell).makeChild();
-                  if(aux == null){
-                      deferred.add(new DeadCell(cell.getPosX(),cell.getPosY(),100));
-                      world.addItem(cell.getPosX(),cell.getPosY(),Type.DEAD);
-                      cell.setEnable(false);
-                  }else{
-                      world.addItem(aux.getPosX(),aux.getPosY(), Type.CELL);
-
-                      deferred.add(aux);
-                  }
+                    Cell aux = ((Cell) cell).makeChild();
+                    if (aux == null) {
+                        deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
+                        cell.setEnable(false);
+                    } else {
+                        deferred.add(aux);
+                    }
 
                 }
 
 
             }
         }
-        for(int i =0; i < cells.size();++i){
-           if(!cells.get(i).isEnable()){
-               cells.remove(cells.get(i));
-           }
+        for (int i = 0; i < cells.size(); ++i) {
+            if (!cells.get(i).isEnable()) {
+                cells.remove(cells.get(i));
+            }
         }
         int count = deferred.size();
-        for(int i = 0;i < count;++i){
+        for (int i = 0; i < count; ++i) {
             cells.add(deferred.remove(0));
         }
+        ++iteration;
 
 
     }
-
-
 
 
     private void draw(GraphicsContext gc) {
@@ -169,19 +154,9 @@ public class SimWorld extends Application {
     }
 
 
-
     public static void main(String[] args) {
 
         launch(args);
-        /*
-        for(int i = 0; i < W;++i) {
-            for (int j = 0; j < H; ++j) {
-                cells[i][j] = new Cell();
-            }
-            System.out.print("\n");
-        }
-
-         */
 
 
     }

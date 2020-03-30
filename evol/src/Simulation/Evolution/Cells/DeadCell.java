@@ -5,7 +5,14 @@ import Simulation.Evolution.Genome;
 import Simulation.System.Executable;
 import Simulation.System.Host;
 
+import java.util.ArrayList;
+
 public class DeadCell extends Host {
+    @Override
+    public void makeNeighbours(ArrayList<Host> cells, int hSize, int wSize) {
+
+    }
+
     public DeadCell(int x, int y, int hp) {
         super(x, y, hp);
     }
@@ -15,7 +22,7 @@ public class DeadCell extends Host {
             throw new Exception("executor should be Exec");
         }
         changeEnergy(-10);
-        Thread.sleep(250);
+       /// Thread.sleep(20);
 
         System.out.println(getEnergy());
 

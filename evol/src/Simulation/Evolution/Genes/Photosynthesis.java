@@ -5,11 +5,7 @@ import Simulation.System.Host;
 
 import java.io.*;
 
-public class Photosynthesis implements Command,Cloneable {
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
+public class Photosynthesis implements Command {
 
 
 

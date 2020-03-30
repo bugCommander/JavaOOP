@@ -1,12 +1,18 @@
 package Simulation.System;
 
 
-import Simulation.Evolution.Executor;
-import Simulation.Evolution.Genome;
-import Simulation.Evolution.World;
+import java.util.ArrayList;
 
 public abstract class Host {
-    public World world;
+
+
+    ///public World world;
+    public Host []neighbours;
+    public Pair []cord;
+
+
+    public abstract void makeNeighbours(ArrayList<Host> cells,int hSize,int wSize);
+
 
     public void setEnable(boolean enable) {
         this.enable = enable;

@@ -10,11 +10,6 @@ import java.io.*;
 public class Move implements Command {
     int W, H;
 
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
-
 
     @Override
     public void doStuff(Host host) {
@@ -94,15 +89,5 @@ public class Move implements Command {
 
 
     }
-
-    @Override
-    public Command copy() throws IOException, ClassNotFoundException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream ous = new ObjectOutputStream(baos);
-        ous.writeObject(this);
-        ous.close();
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        ObjectInputStream ois = new ObjectInputStream(bais);
-        return (Command) ois.readObject();
-    }
 }
+

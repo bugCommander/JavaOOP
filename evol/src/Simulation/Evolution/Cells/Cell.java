@@ -84,7 +84,7 @@ public class Cell extends Host {
             }
             if(world.isEmpty(newX,newY)){
                 Cell aux = new Cell(newX,newY,100);
-               aux.genome.copy(this.genome);
+               aux.genome.addAllCommands(this.genome);
                 return aux;
 
 

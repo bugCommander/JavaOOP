@@ -12,11 +12,8 @@ public class Genome implements CommandContainer {
         genom = new ArrayList<>();
 
     }
-    public void  copy(Genome other) throws CloneNotSupportedException, IOException, ClassNotFoundException {
-        ////genom = new ArrayList<>();
-        for(Command iterator : other.genom){
-            genom.add(iterator.copy());
-        }
+    public void  addAllCommands(Genome other) {
+        genom.addAll(other.genom);
     }
 
     @Override

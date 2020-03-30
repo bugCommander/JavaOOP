@@ -22,15 +22,5 @@ public class Photosynthesis implements Command,Cloneable {
 
     }
 
-    @Override
-    public Command copy() throws IOException, ClassNotFoundException {
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream ous = new ObjectOutputStream(baos);
-        ous.writeObject(this);
-        ous.close();
-        ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-        ObjectInputStream ois = new ObjectInputStream(bais);
-        return (Command) ois.readObject();
-    }
 
 }

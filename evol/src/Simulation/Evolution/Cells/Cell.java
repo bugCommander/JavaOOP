@@ -19,7 +19,7 @@ public class Cell extends Host {
         genome = new Genome();
     }
 
-  public   Cell makeChild() throws CloneNotSupportedException, IOException, ClassNotFoundException {
+  public   Cell makeChild() {
         int W = world.getW();
         int H = world.getH();
         int posX = this.getPosX();
@@ -85,6 +85,7 @@ public class Cell extends Host {
             if(world.isEmpty(newX,newY)){
                 Cell aux = new Cell(newX,newY,100);
                aux.genome.addAllCommands(this.genome);
+               aux.world = this.world;
                 return aux;
 
 

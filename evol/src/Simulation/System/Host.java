@@ -6,7 +6,7 @@ import Simulation.Evolution.Genome;
 import Simulation.Evolution.World;
 
 public abstract class Host {
-    public World world = null;
+    public World world;
 
     public void setEnable(boolean enable) {
         this.enable = enable;

@@ -7,6 +7,9 @@ import Simulation.System.Executable;
 import Simulation.System.Host;
 import Simulation.System.Type;
 
+import java.io.IOException;
+import java.util.ArrayList;
+
 public class Cell extends Host {
     public Genome genome;
 
@@ -16,7 +19,7 @@ public class Cell extends Host {
         genome = new Genome();
     }
 
-  public   Cell makeChild() {
+  public   Cell makeChild() throws CloneNotSupportedException, IOException, ClassNotFoundException {
         int W = world.getW();
         int H = world.getH();
         int posX = this.getPosX();
@@ -81,7 +84,7 @@ public class Cell extends Host {
             }
             if(world.isEmpty(newX,newY)){
                 Cell aux = new Cell(newX,newY,100);
-                aux.genome = this.genome.copy(this.genome);
+               aux.genome.copy(this.genome);
                 return aux;
 
 
@@ -90,6 +93,7 @@ public class Cell extends Host {
 
         return null;
     }
+
 
 
     public void step(Executable executor) throws Exception {

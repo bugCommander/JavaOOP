@@ -2,9 +2,8 @@ package Simulation.Evolution;
 
 import Simulation.System.Command;
 import Simulation.System.CommandContainer;
-import Simulation.System.Executable;
-import Simulation.System.Host;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 public class Genome implements CommandContainer {
@@ -13,13 +12,12 @@ public class Genome implements CommandContainer {
         genom = new ArrayList<>();
 
     }
-    public Genome(Genome copyable){ ////copy constr
-        this.genom = new ArrayList<>(copyable.genom);
+    public void  copy(Genome other) throws CloneNotSupportedException, IOException, ClassNotFoundException {
+        ////genom = new ArrayList<>();
+        for(Command iterator : other.genom){
+            genom.add(iterator.copy());
+        }
     }
-    public  Genome copy(Genome copyable){ ///copy method
-        return new Genome(copyable);
-    }
-
 
     @Override
     public void addCommand(Command command) {

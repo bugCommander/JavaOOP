@@ -10,7 +10,6 @@ import java.util.ArrayList;
 
 public class Cell extends Host {
     public Genome genome;
-    int pointer;
 
 
 
@@ -43,7 +42,14 @@ public class Cell extends Host {
     public Cell(int x, int y, int hp) {
         super(x, y, hp);
         genome = new Genome();
-        pointer = 0;
+    }
+    @Override
+   public void offsetPointer(int offset){
+        pointer+=offset;
+        int mod = genome.size();
+        if(pointer >= mod){
+            pointer %=mod;
+        }
     }
 
   public   Cell makeChild() {
@@ -52,6 +58,7 @@ public class Cell extends Host {
                /// assert neighbours[i] != null;
                 Cell aux = new Cell(cord[i].x,cord[i].y,100);
                 aux.genome.addAllCommands(this.genome);
+
                 neighbours[i] = aux;
                 return aux;
 
@@ -70,17 +77,25 @@ public class Cell extends Host {
             throw new Exception("executor should be Exec");
         }
 
-            executor.execute(genome.getCommand(pointer), this);
-        ++pointer;
-        if(pointer >=genome.size()) {
-            pointer = 0;
-        }
+            executor.execute(genome.getCommand(this.pointer), this);
 
-            Thread.sleep(500);
+        if(getActionPoints()>0){
+            executor.execute(genome.getCommand(this.pointer), this);
+        }
+        setActionPoints(2);
+       /// ++pointer;
+       /// if(pointer >=genome.size()) {
+           /// pointer = 0;
+      ///  }
+
+           /// Thread.sleep(50);
 
 
 
     }
+
+
+
     private  Pair[] fill_cord(){
         Pair []cord = new Pair[8];
         int posX = this.getPosX();

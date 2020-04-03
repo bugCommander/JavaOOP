@@ -23,8 +23,8 @@ public class Genome implements CommandContainer {
     }
 
     @Override
-    public void insertCommand(int pos, Command command) {
-        genom.add(pos,command);
+    public void swapCommand(int pos, Command command) {
+        genom.set(pos,command);
 
     }
 

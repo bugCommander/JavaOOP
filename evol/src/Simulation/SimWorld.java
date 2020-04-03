@@ -3,10 +3,10 @@ package Simulation;
 import Simulation.Evolution.Cells.Cell;
 import Simulation.Evolution.Cells.DeadCell;
 import Simulation.Evolution.Executor;
-import Simulation.Evolution.Genes.Cannibal;
-import Simulation.Evolution.Genes.Move;
-import Simulation.Evolution.Genes.Photosynthesis;
-import Simulation.Evolution.Genes.Rotate;
+import Simulation.Evolution.Groups.GeNode;
+import Simulation.Evolution.Groups.Gelist;
+import Simulation.Evolution.Genes.*;
+import Simulation.System.Command;
 import Simulation.System.Host;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
@@ -27,10 +27,12 @@ public class SimWorld extends Application {
     int iteration = 0;
     ArrayList<Host> cells = new ArrayList<>();
     Executor executor = new Executor();
+    ArrayList<Command> availableGenes = new ArrayList<>();
+    Gelist groups = new Gelist();
 
 
     @Override
-    public void start(Stage primaryStage) {
+    public void start(Stage primaryStage) throws Exception {
 
         primaryStage.setTitle("dafaq");
 
@@ -46,12 +48,17 @@ public class SimWorld extends Application {
 
     }
 
-    private void run(Canvas canvas) {
+    private void run(Canvas canvas) throws Exception {
+        availableGenes.add(new Photosynthesis());
+        availableGenes.add(new Rotate());
+        availableGenes.add(new Check());
+        availableGenes.add(new Move());
+        availableGenes.add(new Cannibal());
+        availableGenes.add(new Attack());
+        CreateCell(8, 8, 150);
+
+
         GraphicsContext renderer = canvas.getGraphicsContext2D();
-        CreateCell(8, 8, 100);
-        cells.add(new DeadCell(7, 7, 100));
-        cells.add(new DeadCell(7, 8, 100));
-        cells.add(new DeadCell(8, 7, 100));
 
 
         AnimationTimer at = new AnimationTimer() {
@@ -72,13 +79,17 @@ public class SimWorld extends Application {
     }
 
 
-    public void CreateCell(int x, int y, int energy) {
+    public void CreateCell(int x, int y, int energy)  {
         Cell aux = new Cell(x, y, energy);
-        aux.genome.addCommand(new Cannibal());
-        aux.genome.addCommand(new Move());
-        aux.genome.addCommand(new Rotate());
-
-
+        aux.genome.addCommand(availableGenes.get(1));
+        aux.genome.addCommand(availableGenes.get(2));
+        aux.genome.addCommand(availableGenes.get(3));
+        aux.genome.addCommand(availableGenes.get(0));
+        aux.genome.addCommand(availableGenes.get(0));
+        aux.genome.addCommand(availableGenes.get(0));
+        aux.genome.addCommand(availableGenes.get(0));
+        aux.genome.addCommand(availableGenes.get(0));
+        groups.CreateGroup(aux);
         cells.add(aux);
 
 
@@ -97,11 +108,19 @@ public class SimWorld extends Application {
 
     private void update() throws Exception {
         ArrayList<Host> deferred = new ArrayList<>();
+        ++iteration;
+        System.out.print("ХОД :");
+        System.out.println(iteration);
+
 
         for (Host cell : cells) {
+            ////System.out.print("особь");
             if (cell.getEnergy() <= 0) {
                 if (cell instanceof Cell) {
+                    groups.Deletelink(cell.getGID());
                     deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
+                    groups.Deletelink(cell.getGID());
+
                 }
 
                 cell.setEnable(false);
@@ -110,13 +129,32 @@ public class SimWorld extends Application {
                 cell.step(executor);
 
                 if (cell.getEnergy() >= 150 && cell instanceof Cell) {
+                    System.out.println("размножение");
                     cell.changeEnergy(-100);
                     Cell aux = ((Cell) cell).makeChild();
                     if (aux == null) {
+                        groups.Deletelink(cell.getGID());
+
                         deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
                         cell.setEnable(false);
+
+
                     } else {
                         deferred.add(aux);
+                        int bones = (int) (Math.random() * 20);
+                        if (bones > 13) {
+                            int pos = (int) (Math.random() * aux.genome.size());
+                            int gene = (int) (Math.random() * availableGenes.size());
+                            System.out.println(pos);
+                            System.out.println(gene);
+                            aux.genome.swapCommand(pos, availableGenes.get(gene));
+                            groups.CreateGroup(aux);
+                        } else {
+                            aux.setGID(cell.getGID());
+                            groups.inclink(cell.getGID());
+                        }
+
+
                     }
 
                 }
@@ -133,20 +171,21 @@ public class SimWorld extends Application {
         for (int i = 0; i < count; ++i) {
             cells.add(deferred.remove(0));
         }
-        ++iteration;
 
 
     }
 
 
-    private void draw(GraphicsContext gc) {
+    private void draw(GraphicsContext gc) throws Exception {
         for (Host cell : cells) {
             if (!cell.isEnable()) {
                 gc.setFill(Color.WHITE);
             } else if (cell instanceof Cell) {
-                gc.setFill(Color.GREEN);
+                gc.setFill(groups.findColor(cell.getGID()));
+                ///  gc.setFill(Color.GREEN);
+
             } else if (cell instanceof DeadCell) {
-                gc.setFill(Color.GREY);
+                gc.setFill(Color.BLACK);
             }
             gc.fillRect(cell.getPosX() * RSIZE + OFFSET, cell.getPosY() * RSIZE + OFFSET, RSIZE, RSIZE);
 

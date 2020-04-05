@@ -133,14 +133,8 @@ public class SimWorld extends Application {
 
 
         init();
-        btnStart.setOnAction(e -> {
-            at.start();
-
-        });
-        btnPause.setOnAction(e -> {
-            at.stop();
-
-        });
+        btnStart.setOnAction(e -> at.start());
+        btnPause.setOnAction(e -> at.stop());
         decode.setOnAction(e -> {
             label.setText(Objects.requireNonNull(encodeGenome(typeGenom.getText())).toString());
             typeGenom.clear();
@@ -165,7 +159,7 @@ public class SimWorld extends Application {
 
 
         delay.valueProperty().addListener((changed, oldValue, newValue) -> pause = newValue.intValue());
-        ;
+
 
 
         primaryStage.show();
@@ -296,7 +290,7 @@ public class SimWorld extends Application {
 
     private StringBuilder encodeGenome(String strgen) {
         char[] array = strgen.toCharArray();
-        StringBuilder decomp = new StringBuilder("");
+        StringBuilder decomp = new StringBuilder();
         for (int i = 0; i < array.length; ++i) {
             decomp.append(i + 1);
 

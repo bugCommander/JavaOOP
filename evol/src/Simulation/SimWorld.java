@@ -7,21 +7,18 @@ import Simulation.Evolution.Genes.*;
 import Simulation.Evolution.Groups.Gelist;
 import Simulation.System.Command;
 import Simulation.System.Host;
-import Simulation.UI.table.Table;
-import Simulation.UI.table.TableNode;
+import Simulation.UI.Table.Table;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.FlowPane;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -32,7 +29,6 @@ public class SimWorld extends Application {
     final int H = 16;
     final int OFFSET = 40;
     final int RSIZE = 20;
-    int iteration = 0;
     long pause = 0;
     ArrayList<Host> cells = new ArrayList<>();
     Executor executor = new Executor();
@@ -94,14 +90,25 @@ public class SimWorld extends Application {
         javafx.scene.control.Label Ladelay = new javafx.scene.control.Label("delay");
         settings.getChildren().addAll(delay, Ladelay);
         root.getChildren().add(settings);
+        FlowPane tableStaff = new FlowPane();
+        Button delTableBtn = new Button("delFlag");
+        tableStaff.getChildren().addAll(delTableBtn, table.getTable());
+        tableStaff.setLayoutX(380);
+        root.getChildren().add(tableStaff);
 
 
-
-
-
-
-        root.getChildren().add(table.getTable());
-
+        Button decode = new Button("decode genome");
+        TextField typeGenom = new TextField();
+        Label label = new Label();
+        label.setText("here will be decoded genome");
+        FlowPane decoder = new FlowPane();
+        decoder.getChildren().addAll(decode, typeGenom);
+        decoder.setLayoutX(725);
+        decoder.setLayoutY(20);
+        root.getChildren().add(decoder);
+        root.getChildren().add(label);
+        label.setLayoutX(725);
+        label.setLayoutY(60);
 
 
         GraphicsContext renderer = canvas.getGraphicsContext2D();
@@ -133,16 +140,29 @@ public class SimWorld extends Application {
             at.stop();
 
         });
+        decode.setOnAction(e -> {
+            label.setText(encodeGenome(typeGenom.getText()).toString());
+            typeGenom.clear();
+
+
+        });
+        delTableBtn.setOnAction(e -> {
+            table.setDeleteFlag(!table.isDeleteFlag());
+            if (table.isDeleteFlag()) {
+                table.clearEmptystrings();
+            }
+
+        });
         btnRestart.setOnAction(e -> {
             cells.clear();
             groups.clear();
             CreateCell(W / 2, H / 2, 150);
-            ///table = new Table();
             table.getTableData().clear();
-            iteration = 0;
             at.start();
 
         });
+
+
         delay.valueProperty().addListener((changed, oldValue, newValue) -> pause = newValue.intValue());
         ;
 
@@ -151,7 +171,6 @@ public class SimWorld extends Application {
 
 
     }
-
 
 
     public void CreateCell(int x, int y, int energy) {
@@ -166,7 +185,6 @@ public class SimWorld extends Application {
         aux.genome.addCommand(availableGenes.get(0));
         groups.CreateGroup(aux);
         cells.add(aux);
-
 
 
     }
@@ -185,9 +203,6 @@ public class SimWorld extends Application {
 
     private void update() throws Exception {
         ArrayList<Host> deferred = new ArrayList<>();
-        ++iteration;
-        System.out.print("ХОД :");
-        System.out.println(iteration);
 
 
         for (Host cell : cells) {
@@ -200,7 +215,7 @@ public class SimWorld extends Application {
             if (cell.getEnergy() <= 0) {
                 if (cell instanceof Cell) {
                     groups.Deletelink(cell.getGID());
-                    table.changeLinks(cell.getGID(),-1);
+                    table.changeLinks(cell.getGID(), -1);
 
 
                     deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
@@ -213,12 +228,11 @@ public class SimWorld extends Application {
                 cell.step(executor);
 
                 if (cell.getEnergy() >= 150 && cell instanceof Cell) {
-                    System.out.println("размножение");
                     cell.changeEnergy(-100);
                     Cell aux = ((Cell) cell).makeChild();
                     if (aux == null) {
                         groups.Deletelink(cell.getGID());
-                        table.changeLinks(cell.getGID(),-1);
+                        table.changeLinks(cell.getGID(), -1);
 
 
                         deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
@@ -239,7 +253,7 @@ public class SimWorld extends Application {
                         } else {
                             aux.setGID(cell.getGID());
                             groups.inclink(cell.getGID());
-                            table.changeLinks(cell.getGID(),+1);
+                            table.changeLinks(cell.getGID(), +1);
                         }
 
 
@@ -270,7 +284,6 @@ public class SimWorld extends Application {
                 gc.setFill(Color.WHITE);
             } else if (cell instanceof Cell) {
                 gc.setFill(groups.findColor(cell.getGID()));
-                ///  gc.setFill(Color.GREEN);
 
             } else if (cell instanceof DeadCell) {
                 gc.setFill(Color.BLACK);
@@ -280,6 +293,49 @@ public class SimWorld extends Application {
         }
     }
 
+    private StringBuilder encodeGenome(String strgen) {
+        char[] array = strgen.toCharArray();
+        StringBuilder decomp = new StringBuilder("");
+        for (int i = 0; i < array.length; ++i) {
+            decomp.append(i + 1);
+
+            if (array[i] == '1') {
+                decomp.append(". Photosynthesis\n");
+                continue;
+
+            }
+            if (array[i] == '2') {
+                decomp.append(". rotate\n");
+                continue;
+
+            }
+            if (array[i] == '3') {
+                decomp.append(". check\n");
+                continue;
+
+            }
+            if (array[i] == '4') {
+                decomp.append(". move\n");
+                continue;
+
+            }
+            if (array[i] == '5') {
+                decomp.append(". cannibal\n");
+                continue;
+
+            }
+            if (array[i] == '6') {
+                decomp.append(". attack\n");
+                continue;
+
+            }
+            return null;
+
+
+        }
+        return decomp;
+
+    }
 
     public static void main(String[] args) {
 

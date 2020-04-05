@@ -12,13 +12,10 @@ public class Attack implements Command {
         Host target = host.neighbours[host.getRotation()];
         if(target instanceof Cell){
             target.changeEnergy(-target.getEnergy());
-           /// System.out.print("someone is dead");
         }
 
         host.changeEnergy(-10);
 
-        ///System.out.println("Attack");
-        ///System.out.println(host.getEnergy());
         host.offsetPointer(heavy_offset);
         host.setActionPoints(0);
 

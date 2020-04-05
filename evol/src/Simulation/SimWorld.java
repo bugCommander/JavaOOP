@@ -23,6 +23,7 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class SimWorld extends Application {
     final int W = 16;
@@ -53,7 +54,7 @@ public class SimWorld extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        primaryStage.setTitle("dafaq");
+        primaryStage.setTitle("Evolution");
         primaryStage.setHeight(600);
         primaryStage.setWidth(1024);
 
@@ -141,7 +142,7 @@ public class SimWorld extends Application {
 
         });
         decode.setOnAction(e -> {
-            label.setText(encodeGenome(typeGenom.getText()).toString());
+            label.setText(Objects.requireNonNull(encodeGenome(typeGenom.getText())).toString());
             typeGenom.clear();
 
 

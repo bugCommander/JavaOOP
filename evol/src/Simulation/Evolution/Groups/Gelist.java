@@ -1,42 +1,17 @@
 package Simulation.Evolution.Groups;
 
 import Simulation.Evolution.Cells.Cell;
-import javafx.scene.Node;
 import javafx.scene.paint.Color;
 
 import java.util.ArrayList;
 
 public class Gelist {
-    ////private int size;
     private ArrayList<GeNode> NodeList = new ArrayList<>();
-    ////private Boolean[] GIDarray;
-
-/*
-    public Gelist(int h, int w) {
-        size = h * w;
-        NodeList = new ArrayList<>();
-        ////GIDarray = new Boolean[size];
-        for (int i = 0; i < size; ++i) {
-            GIDarray[i] = false;
-        }
+    public GeNode get(int GID){
+        return NodeList.get(GID);
 
     }
 
-
-
-    int findFreeGID() throws Exception {
-        int freeGID;
-        for (int i = 0; i < size; ++i) {
-            if (!GIDarray[i]) {
-                freeGID = i;
-                return freeGID;
-            }
-        }
-        throw new Exception("FULL GID LIST");
-
-    }
-
- */
 
     public Color findColor(int GID) throws Exception {
         for (GeNode node : NodeList) {
@@ -83,9 +58,9 @@ public class Gelist {
     }
 
 
-
-
-
+    public void clear() {
+        NodeList.clear();
+    }
 }
 
 

@@ -17,7 +17,7 @@ public class Move implements Command {
 
 
 
-        System.out.println("Move");
+       //// System.out.println("Move");
 
         host.changeEnergy(-10);
         host.offsetPointer(heavy_offset);

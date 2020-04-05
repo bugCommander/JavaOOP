@@ -11,13 +11,13 @@ public class Cannibal implements Command {
             if(target instanceof DeadCell){
                 host.changeEnergy((30));
                 target.changeEnergy(-target.getEnergy());
-                System.out.print("MEEET");
+               /// System.out.print("MEEET");
 
             }
 
         host.changeEnergy(-10);
 
-        System.out.println(" Cannibal");
+       /// System.out.println(" Cannibal");
         host.offsetPointer(heavy_offset);
         host.setActionPoints(0);
 

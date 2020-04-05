@@ -1,5 +1,6 @@
 package Simulation.Evolution;
 
+import Simulation.Evolution.Genes.*;
 import Simulation.System.Command;
 import Simulation.System.CommandContainer;
 
@@ -33,9 +34,46 @@ public class Genome implements CommandContainer {
         return genom.get(pos);
     }
 
+
     @Override
     public int size() {
         return genom.size();
+    }
+
+
+
+    public  String convert(){
+        StringBuilder string = new StringBuilder();
+        for(Command pos: genom) {
+            if (pos instanceof Photosynthesis) {
+                string.append("1");
+                continue;
+            }
+            if (pos instanceof Rotate) {
+                string.append("2");
+                continue;
+            }
+            if (pos instanceof Check){
+                string.append("3");
+            continue;
+        }
+            if(pos instanceof Move) {
+                string.append("4");
+                continue;
+            }
+            if(pos instanceof Cannibal){
+                string.append("5");
+                continue;
+            }
+            if(pos instanceof Attack){
+                string.append("6");
+                continue;
+            }
+
+
+
+        }
+        return string.toString();
     }
 
 

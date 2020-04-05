@@ -11,7 +11,7 @@ public class Check implements Command {
     @Override
     public void doStuff(Host host) {
         Host checkingCell = host.neighbours[host.getRotation()];
-        System.out.println("Check");
+       /// System.out.println("Check");
         host.setActionPoints(host.getActionPoints() -1);
         if (checkingCell == null) {
             host.offsetPointer(move_command);

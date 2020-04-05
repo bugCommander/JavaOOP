@@ -3,17 +3,25 @@ package Simulation;
 import Simulation.Evolution.Cells.Cell;
 import Simulation.Evolution.Cells.DeadCell;
 import Simulation.Evolution.Executor;
-import Simulation.Evolution.Groups.GeNode;
-import Simulation.Evolution.Groups.Gelist;
 import Simulation.Evolution.Genes.*;
+import Simulation.Evolution.Groups.Gelist;
 import Simulation.System.Command;
 import Simulation.System.Host;
+import Simulation.UI.table.Table;
+import Simulation.UI.table.TableNode;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
@@ -25,46 +33,85 @@ public class SimWorld extends Application {
     final int OFFSET = 40;
     final int RSIZE = 20;
     int iteration = 0;
+    long pause = 0;
     ArrayList<Host> cells = new ArrayList<>();
     Executor executor = new Executor();
     ArrayList<Command> availableGenes = new ArrayList<>();
     Gelist groups = new Gelist();
+    Table table = new Table();
 
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
-
-        primaryStage.setTitle("dafaq");
-
-        Group root = new Group();
-        Scene theScene = new Scene(root);
-        primaryStage.setScene(theScene);
-
-        Canvas canvas = new Canvas(512, 512);
-        root.getChildren().add(canvas);
-        run(canvas);
-        primaryStage.show();
-
-
-    }
-
-    private void run(Canvas canvas) throws Exception {
+    public void init() throws Exception {
+        super.init();
         availableGenes.add(new Photosynthesis());
         availableGenes.add(new Rotate());
         availableGenes.add(new Check());
         availableGenes.add(new Move());
         availableGenes.add(new Cannibal());
         availableGenes.add(new Attack());
-        CreateCell(8, 8, 150);
+        CreateCell(W / 2, H / 2, 150);
+
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+
+        primaryStage.setTitle("dafaq");
+        primaryStage.setHeight(600);
+        primaryStage.setWidth(1024);
+
+        Group root = new Group();
+        Scene theScene = new Scene(root);
+        primaryStage.setScene(theScene);
+        Canvas canvas = new Canvas(512, 512);
+        root.getChildren().add(canvas);
+
+
+        FlowPane Simbar = new FlowPane();
+        javafx.scene.control.Button btnStart = new javafx.scene.control.Button("Start");
+        javafx.scene.control.Button btnPause = new javafx.scene.control.Button("Pause");
+        javafx.scene.control.Button btnRestart = new javafx.scene.control.Button("Restart");
+        Simbar.getChildren().add(btnStart);
+        Simbar.getChildren().add(btnPause);
+        Simbar.getChildren().add(btnRestart);
+        Simbar.setLayoutX(OFFSET);
+        root.getChildren().add(Simbar);
+
+
+        javafx.scene.control.Slider delay = new javafx.scene.control.Slider(0, 25, 0);
+        delay.setShowTickMarks(true);
+        delay.setShowTickLabels(true);
+        delay.setBlockIncrement(2.0);
+        delay.setMajorTickUnit(5.0);
+        delay.setMinorTickCount(4);
+
+
+        FlowPane settings = new FlowPane();
+        settings.setAlignment(Pos.BOTTOM_LEFT);
+        settings.setLayoutY(400);
+        settings.setLayoutX(OFFSET);
+        javafx.scene.control.Label Ladelay = new javafx.scene.control.Label("delay");
+        settings.getChildren().addAll(delay, Ladelay);
+        root.getChildren().add(settings);
+
+
+
+
+
+
+        root.getChildren().add(table.getTable());
+
 
 
         GraphicsContext renderer = canvas.getGraphicsContext2D();
-
 
         AnimationTimer at = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 try {
+
+
                     update();
                     renderer.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
                     draw(renderer);
@@ -75,11 +122,39 @@ public class SimWorld extends Application {
                 }
             }
         };
-        at.start();
+
+
+        init();
+        btnStart.setOnAction(e -> {
+            at.start();
+
+        });
+        btnPause.setOnAction(e -> {
+            at.stop();
+
+        });
+        btnRestart.setOnAction(e -> {
+            cells.clear();
+            groups.clear();
+            CreateCell(W / 2, H / 2, 150);
+            ///table = new Table();
+            table.getTableData().clear();
+            iteration = 0;
+            at.start();
+
+        });
+        delay.valueProperty().addListener((changed, oldValue, newValue) -> pause = newValue.intValue());
+        ;
+
+
+        primaryStage.show();
+
+
     }
 
 
-    public void CreateCell(int x, int y, int energy)  {
+
+    public void CreateCell(int x, int y, int energy) {
         Cell aux = new Cell(x, y, energy);
         aux.genome.addCommand(availableGenes.get(1));
         aux.genome.addCommand(availableGenes.get(2));
@@ -91,6 +166,7 @@ public class SimWorld extends Application {
         aux.genome.addCommand(availableGenes.get(0));
         groups.CreateGroup(aux);
         cells.add(aux);
+
 
 
     }
@@ -106,6 +182,7 @@ public class SimWorld extends Application {
 
     }
 
+
     private void update() throws Exception {
         ArrayList<Host> deferred = new ArrayList<>();
         ++iteration;
@@ -114,12 +191,19 @@ public class SimWorld extends Application {
 
 
         for (Host cell : cells) {
-            ////System.out.print("особь");
+            long now = System.currentTimeMillis();
+            long timer = System.currentTimeMillis();
+            while (timer < now + pause) {
+                timer = System.currentTimeMillis();
+            }
+
             if (cell.getEnergy() <= 0) {
                 if (cell instanceof Cell) {
                     groups.Deletelink(cell.getGID());
+                    table.changeLinks(cell.getGID(),-1);
+
+
                     deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
-                    groups.Deletelink(cell.getGID());
 
                 }
 
@@ -134,6 +218,8 @@ public class SimWorld extends Application {
                     Cell aux = ((Cell) cell).makeChild();
                     if (aux == null) {
                         groups.Deletelink(cell.getGID());
+                        table.changeLinks(cell.getGID(),-1);
+
 
                         deferred.add(new DeadCell(cell.getPosX(), cell.getPosY(), 100));
                         cell.setEnable(false);
@@ -149,9 +235,11 @@ public class SimWorld extends Application {
                             System.out.println(gene);
                             aux.genome.swapCommand(pos, availableGenes.get(gene));
                             groups.CreateGroup(aux);
+                            table.addRow(groups.get(aux.getGID()));
                         } else {
                             aux.setGID(cell.getGID());
                             groups.inclink(cell.getGID());
+                            table.changeLinks(cell.getGID(),+1);
                         }
 
 

@@ -55,7 +55,6 @@ public class Cell extends Host {
   public   Cell makeChild() {
         for(int i = 0; i < 8;++i){
             if(neighbours[i]== null){
-               /// assert neighbours[i] != null;
                 Cell aux = new Cell(cord[i].x,cord[i].y,100);
                 aux.genome.addAllCommands(this.genome);
 
@@ -88,7 +87,7 @@ public class Cell extends Host {
            /// pointer = 0;
       ///  }
 
-           /// Thread.sleep(50);
+            ///Thread.sleep(50);
 
 
 

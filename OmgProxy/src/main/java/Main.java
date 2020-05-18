@@ -5,11 +5,9 @@ import java.io.IOException;
 public class Main {
     public static void main(String[] args) {
         if (args.length != 1) {
-            System.out.println("Incorrect number of input parameters");
-            System.out.println("You should write port");
+            System.out.println("You should write only port");
             return;
         }
-        System.out.println("I'm running");
 
         try {
             int port = Integer.parseInt(args[0]);

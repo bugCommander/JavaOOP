@@ -1,6 +1,5 @@
 package Proxy;
 
-import Proxy.Connections.Connection;
 import Proxy.Connections.ConnectionHandler;
 import Proxy.Connections.Server;
 
@@ -19,8 +18,7 @@ public class Proxy implements AutoCloseable,Runnable {
 
 
     public Proxy(int port) throws IOException {
-        server = new Server(port);
-        server.register(selector);
+        server = new Server(port,selector);
 
 
 
@@ -38,11 +36,14 @@ public class Proxy implements AutoCloseable,Runnable {
         try {
             while (!Thread.currentThread().isInterrupted()) {
                 int count = selector.select(TIMEOUT);
-                if (count == 0) continue;
+                if (count == 0) continue; //// если ни на одном из каналов,прослушиваемом селектором не произошло - скип
                 Set<SelectionKey> modified = selector.selectedKeys();
                 for (SelectionKey selected : modified) {
                     ConnectionHandler key  =  (ConnectionHandler)selected.attachment();
+                    ////interface Conectionhandler- implements by Server/Server/DNS
                     key.accept(selected);
+                    ///проходимся по  ключам, там где произошли какие-то события и чекаем эти события
+
                 }
                 modified.clear();
             }

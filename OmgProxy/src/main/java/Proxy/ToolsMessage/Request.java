@@ -1,11 +1,11 @@
-package Proxy.Connections.Message;
+package Proxy.ToolsMessage;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public class Request {
+public class Request extends ToolsMessage {
     public Request(ByteBuffer buffer) {
-        this.data = new byte[buffer.limit()];
+        super(new byte[buffer.limit()]);
         buffer.get(this.data);
         if (!Request.isCorrect(this.data)) {
             throw new IllegalArgumentException();
@@ -83,10 +83,5 @@ public class Request {
         return true;
     }
 
-    public static final byte IPv4 = (byte) 0x01;
-    public static final byte DOMAIN_NAME = (byte) 0x03;
-    public static final byte IPv6 = (byte) 0x04;
-    public static final byte CONNECT_TCP = (byte) 0x01;
 
-    private final byte[] data;
 }

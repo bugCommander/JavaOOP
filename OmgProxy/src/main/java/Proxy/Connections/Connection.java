@@ -1,8 +1,9 @@
 package Proxy.Connections;
 
-import Proxy.Connections.Message.HelloRequest;
-import Proxy.Connections.Message.Request;
-import Proxy.Connections.Message.ResponseOnRequest;
+import Proxy.ToolsMessage.HelloRequest;
+import Proxy.ToolsMessage.MessageReader;
+import Proxy.ToolsMessage.Request;
+import Proxy.ToolsMessage.ResponseOnRequest;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -13,234 +14,223 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
 public class Connection implements ConnectionHandler {
-    private SocketChannel server = null;
-    private  SocketChannel client;
+    private SocketChannel serverChannel = null;
+
+    public SocketChannel getClientChannel() {
+        return clientChannel;
+    }
+
+    private SocketChannel clientChannel;
 
 
-
-    private  DNS dns;
+    private DNS dns;
     private static final int BUFFER_SIZE = 4096;
 
     private State state = State.HELLO;
 
 
-    private ByteBuffer b_read = ByteBuffer.allocateDirect(BUFFER_SIZE);
-    private ByteBuffer b_write = null;
+    public ByteBuffer getReadBuff() {
+        return readBuff;
+    }
+
+    public void setReadBuff(ByteBuffer readBuff) {
+        this.readBuff = readBuff;
+    }
+
+    private ByteBuffer readBuff = ByteBuffer.allocateDirect(BUFFER_SIZE);
+    private ByteBuffer writeBuff = null;
 
     private HelloRequest hello = null;
     private Request request = null;
+    private ResponseOnRequest response = null;
 
-    public static final byte SOCKS_5 = 0x05;
-    public static final byte NO_AUTHENTICATION = 0x00;
-    public static final byte NO_ACCEPTABLE_METHODS = (byte) 0xFF;
 
-    public Connection(SocketChannel aux_client, DNS aux_dns){
+    public Connection(SocketChannel aux_client, DNS aux_dns,Selector selector) throws IOException {
         dns = aux_dns;
-        client = aux_client;
-
-    }
-
-    @Override
-    public void close() throws IOException {
-        if (client != null) this.client.close();
-        if (server != null) this.server.close();
-    }
+        clientChannel = aux_client;
+        clientChannel.configureBlocking(false);
+        clientChannel.register(selector, SelectionKey.OP_READ, this);
 
 
-
-    @Override
-    public void read(SelectionKey key) {
-
-    }
-
-    @Override
-    public void write(SelectionKey key) {
-
-    }
-
-    @Override
-    public void register(Selector selector) throws IOException {
-        client.configureBlocking(false);
-        client.register(selector, SelectionKey.OP_READ, this);
-
-    }
-
-    private HelloRequest readHelloMessage() throws IOException {
-        int read_bytes = client.read(b_read);
-        if (-1 == read_bytes) {
-            this.close();
-            return null;
-        }
-        if (HelloRequest.isCorrectSizeOfMessage(b_read)) {
-            b_read.flip();
-            return new HelloRequest(b_read);
-        }
-        return null;
-    }
-
-    private Request readRequestMessage() throws IOException {
-        int read_bytes = client.read(b_read);
-        if (-1 == read_bytes) {
-            this.close();
-            return null;
-        }
-        if (Request.isCorrectSizeOfMessage(b_read)) {
-            b_read.flip();
-            return new Request(b_read);
-        }
-        return null;
-    }
-
-    public byte[] getResponse() {
-        byte[] data = new byte[2];
-        data[0] = SOCKS_5;
-        if (!hello.hasMethod()) {
-            data[1] = NO_ACCEPTABLE_METHODS;
-        }
-        else {
-            data[1] = NO_AUTHENTICATION;
-        }
-        return data;
-    }
-
-    private void clientPart(SelectionKey key) throws IOException {
-        if (key.isReadable()) { // мы получаем сообщение от клиента
-            switch (state) {
-                case HELLO: {
-                    System.out.println("Get hello message");
-                    hello = this.readHelloMessage();
-                    if (null == hello) return;
-                    key.interestOps(SelectionKey.OP_WRITE);
-                    b_read.clear();
-                    break;
-                }
-                case REQUEST: {
-                    System.out.println("Get request message");
-                    request = this.readRequestMessage();
-                    if (null == request) return;
-                    if (!this.connect()) {
-                        server = null;
-                        key.interestOps(SelectionKey.OP_WRITE);
-                    }
-                    else {
-                        server.register(key.selector(), SelectionKey.OP_CONNECT, this);
-                        key.interestOps(0);
-                    }
-                    b_read.clear();
-                    break;
-                }
-                case MESSAGE: {
-                    if (this.readFrom(client, b_read)) {
-                        server.register(key.selector(), SelectionKey.OP_WRITE, this);
-                        key.interestOps(0);
-                    }
-                    break;
-                }
-            }
-        }
-        else if (key.isWritable()) { // мы отправляем сообщение клиенту
-            switch (state) {
-                case HELLO: {
-                    if (null == b_write) {
-                        b_write = ByteBuffer.wrap(getResponse());
-                    }
-                    if (this.writeTo(client, b_write)) {
-                        b_write = null;
-                        if (hello.hasMethod()) {
-                            key.interestOps(SelectionKey.OP_READ);
-                            state = State.REQUEST;
-                        }
-                        else {
-                            System.err.println("Not support");
-                            this.close();
-                        }
-                        hello = null;
-                    }
-                    break;
-                }
-                case REQUEST: {
-                    if (null == b_write) {
-                        b_write = ByteBuffer.wrap(ResponseOnRequest.create(request, server != null)); // cоздаем массив
-                        // в который кидает код ответа на запрос
-                    }
-                    if (this.writeTo(client, b_write)) {
-                        b_write = null;
-                        if (!request.isCommand(Request.CONNECT_TCP) || server == null) {
-                            this.close();
-                            System.out.println("Not support");
-                        }
-                        else {
-                            key.interestOps(SelectionKey.OP_READ);
-                            server.register(key.selector(), SelectionKey.OP_READ, this);
-                            state = State.MESSAGE;
-                        }
-                        request = null;
-                    }
-                    break;
-                }
-                case MESSAGE: {
-                    if (this.writeTo(client, b_read)) {
-                        key.interestOps(SelectionKey.OP_READ);
-                        server.register(key.selector(), SelectionKey.OP_READ, this);
-                    }
-                    break;
-                }
-            }
-        }
-    }
-
-    private void serverPart(SelectionKey key) throws IOException {
-        if (key.isWritable()) {
-            if (this.writeTo(server, b_read)) {
-                key.interestOps(SelectionKey.OP_READ);
-                client.register(key.selector(), SelectionKey.OP_READ, this);
-            }
-        }
-        else if (key.isReadable()) {
-            if (this.readFrom(server, b_read)) {
-                client.register(key.selector(), SelectionKey.OP_WRITE, this);
-                key.interestOps(0); // selector устанавливается в ничто
-            }
-        }
-        else if (key.isConnectable()) {
-            if (!server.isConnectionPending()) return;
-            if (!server.finishConnect()) return;
-            key.interestOps(0);
-            client.register(key.selector(), SelectionKey.OP_WRITE, this);
-        }
     }
 
     @Override
     public void accept(SelectionKey key) {
         try {
             if (!key.isValid()) {
-                this.close();
+                close();
                 key.cancel();
                 return;
             }
+            if (key.isReadable()) {
+                read(key);
+            } else if (key.isWritable()) {
+                write(key);
+            } else if (key.isConnectable() && key.channel() == serverChannel) {
+                serverConnect(key);
+            }
 
-            if (client == key.channel()) {
-                clientPart(key);
-            }
-            else if (server == key.channel()) {
-                serverPart(key);
-            }
-        }
-        catch (IOException ex) {
+
+        } catch (IOException ex) {
             try {
-                this.close();
+                close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
+
+    @Override
+    public void close() throws IOException {
+        clientChannel.close();
+        serverChannel.close();
+    }
+
+
+    @Override
+    public void read(SelectionKey key) throws IOException {
+        if (key.channel() == clientChannel) {
+            clientRead(key);
+
+        } else if (key.channel() == serverChannel) {
+            serverRead(key);
+
+        }
+
+    }
+
+
+    private void clientRead(SelectionKey key) throws IOException {
+        switch (state) {
+            case HELLO: {
+                System.out.println("Get hello");
+                hello = MessageReader.readHelloMessage(this);
+                if (hello == null) return;
+                key.interestOps(SelectionKey.OP_WRITE);
+                readBuff.clear();
+                break;
+            }
+            case REQUEST: {
+                System.out.println("Get request");
+                request = MessageReader.readRequestMessage(this);
+                if (request == null) return;
+                if (!connect()) {
+                    serverChannel = null;
+                    key.interestOps(SelectionKey.OP_WRITE);
+                } else {
+                    serverChannel.register(key.selector(), SelectionKey.OP_CONNECT, this);
+                    key.interestOps(0);
+                }
+                readBuff.clear();
+                break;
+            }
+            case MESSAGE: {
+                if (this.readFrom(clientChannel, readBuff)) {
+                    serverChannel.register(key.selector(), SelectionKey.OP_WRITE, this);
+                    key.interestOps(0);
+                }
+                break;
+            }
+        }
+
+    }
+
+    private void serverRead(SelectionKey key) throws IOException {
+        if (readFrom(serverChannel, readBuff)) {
+            clientChannel.register(key.selector(), SelectionKey.OP_WRITE, this);
+            key.interestOps(0);
+        }
+
+
+    }
+
+    private void serverConnect(SelectionKey key) throws IOException {
+        if (!serverChannel.isConnectionPending()) return;
+        if (!serverChannel.finishConnect()) return;
+        key.interestOps(0);
+        clientChannel.register(key.selector(), SelectionKey.OP_WRITE, this);
+
+    }
+
+    @Override
+    public void write(SelectionKey key) throws IOException {
+        if (key.channel() == clientChannel) {
+            clientWrite(key);
+
+        } else if (key.channel() == serverChannel) {
+            serverWrite(key);
+
+        }
+
+    }
+
+    private void clientWrite(SelectionKey key) throws IOException {
+        switch (state) {
+            case HELLO: {
+                if (writeBuff == null) {
+                    writeBuff = ByteBuffer.wrap(MessageReader.getResponse(hello));
+                }
+                if (writeTo(clientChannel, writeBuff)) {
+                    writeBuff = null;
+                    if (hello.hasMethod()) {
+                        key.interestOps(SelectionKey.OP_READ);
+                        state = State.REQUEST;
+                    } else {
+                        System.err.println("Not support");
+                        this.close();
+                    }
+                    hello = null;
+                }
+                break;
+            }
+            case REQUEST: {
+                if (writeBuff == null) {
+                    response = new ResponseOnRequest(request);
+                    writeBuff = ByteBuffer.wrap(response.create(serverChannel != null)); //
+                }
+                if (writeTo(clientChannel, writeBuff)) {
+                    writeBuff = null;
+                    if (!request.isCommand(Request.CONNECT_TCP) || serverChannel == null) {
+                        this.close();
+                        System.out.println("Not support");
+                    } else {
+                        key.interestOps(SelectionKey.OP_READ);
+                        serverChannel.register(key.selector(), SelectionKey.OP_READ, this);
+                        state = State.MESSAGE;
+                    }
+                    request = null;
+                }
+                break;
+            }
+            case MESSAGE: {
+                if (writeTo(clientChannel, readBuff)) {
+                    key.interestOps(SelectionKey.OP_READ);
+                    serverChannel.register(key.selector(), SelectionKey.OP_READ, this);
+                }
+                break;
+            }
+        }
+
+    }
+
+    private void serverWrite(SelectionKey key) throws IOException {
+        if (writeTo(serverChannel, readBuff)) {
+            key.interestOps(SelectionKey.OP_READ);
+            clientChannel.register(key.selector(), SelectionKey.OP_READ, this);
+        }
+
+
+    }
+
+
+
+
     public boolean connectToServer(InetAddress address) {
         System.out.println("Connect with Server" + address);
         try {
-            server.connect(new InetSocketAddress(address, request.getDestPort()));
-        }
-        catch (IOException e) {
+            serverChannel.connect(new InetSocketAddress(address, request.getDestPort()));
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
@@ -248,20 +238,24 @@ public class Connection implements ConnectionHandler {
     }
 
     private boolean connect() throws IOException {
-        server = SocketChannel.open();
-        server.configureBlocking(false);
+        serverChannel = SocketChannel.open();
+        serverChannel.configureBlocking(false);
         switch (request.getAddressType()) {
             case Request.IPv4: {
-                return this.connectToServer(InetAddress.getByAddress(request.getDestAddress()));
-            }
-            case Request.DOMAIN_NAME: {
-                dns.sendToResolve(new String(request.getDestAddress()), this);
-                break;
+                return connectToServer(InetAddress.getByAddress(request.getDestAddress()));
             }
             case Request.IPv6: {
                 System.err.println("It's a IPv6");
                 return false;
             }
+
+
+            case Request.DOMAIN_NAME: {
+                dns.sendToResolve(new String(request.getDestAddress()), this);
+                break;
+            }
+
+
         }
         return true;
     }
@@ -269,18 +263,24 @@ public class Connection implements ConnectionHandler {
     private boolean readFrom(SocketChannel channel, ByteBuffer buffer) throws IOException {
         buffer.compact();
         int read_bytes = channel.read(buffer);
-        if (-1 == read_bytes) {
+        if (read_bytes == -1) {
             this.close();
             return false;
         }
-        if (0 != read_bytes) {
+        if (read_bytes != 0) {
             buffer.flip();
         }
-        return 0 != read_bytes;
+        return read_bytes != 0;
     }
 
     private boolean writeTo(SocketChannel channel, ByteBuffer buffer) throws IOException {
         channel.write(buffer);
         return !buffer.hasRemaining();
+    }
+
+    private enum State {
+        HELLO,
+        REQUEST,
+        MESSAGE
     }
 }

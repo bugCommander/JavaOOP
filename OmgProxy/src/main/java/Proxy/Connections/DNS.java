@@ -1,6 +1,5 @@
 package Proxy.Connections;
 
-import Proxy.Proxy;
 import org.xbill.DNS.*;
 
 import java.io.IOException;
@@ -12,6 +11,7 @@ import java.nio.channels.Selector;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 public class DNS implements ConnectionHandler{
    private DatagramChannel resolverChannel = DatagramChannel.open();
@@ -25,12 +25,16 @@ public class DNS implements ConnectionHandler{
 
     private final Deque<Message> deque = new LinkedList<>();
 
-    private final HashMap<Integer, Connection> attachments = new HashMap<>();
+    private final Map<Integer, Connection> attachments = new HashMap<>();
 
 
-    public DNS(int port) throws IOException {
+    public DNS(int port, Selector selector) throws IOException {
+        resolverChannel.configureBlocking(false);
+        resolverChannel.register(selector, 0, this);
+        key = resolverChannel.keyFor(selector);
         resolverChannel.bind(new InetSocketAddress(port));
         DnsServerAddr = ResolverConfig.getCurrentConfig().server();
+        //// соединение с ближайшим сервером для резольвинга днс
         resolverChannel.connect(DnsServerAddr);
         readBuff.clear();
         writeBuff.clear();
@@ -86,11 +90,6 @@ public class DNS implements ConnectionHandler{
     }
 
 
-   /* A DNS Message. A message is the basic unit
-   of communication between the client and server of a DNS operation.
-   A message consists of a Header and 4 message sections.
-    */
-
 
 
 
@@ -122,11 +121,11 @@ public class DNS implements ConnectionHandler{
     @Override
     public void write(SelectionKey key) throws IOException {
         Message dnsRequest = deque.pollFirst();
-        while (null != dnsRequest) {
+        while (dnsRequest != null) {
             writeBuff.clear();
             writeBuff.put(dnsRequest.toWire());
             writeBuff.flip();
-            if (0 == resolverChannel.send(writeBuff, DnsServerAddr)) {
+            if (resolverChannel.send(writeBuff, DnsServerAddr) == 0) {
                 deque.addFirst(dnsRequest);
                 break;
             }
@@ -137,12 +136,6 @@ public class DNS implements ConnectionHandler{
 
     }
 
-    @Override
-    public void register(Selector selector) throws IOException {
-        resolverChannel.configureBlocking(false);
-        resolverChannel.register(selector, 0, this);
-        key = resolverChannel.keyFor(selector);
 
-    }
 }
 

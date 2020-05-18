@@ -9,16 +9,12 @@ import java.nio.channels.ServerSocketChannel;
 public class Server implements ConnectionHandler{
     private ServerSocketChannel serverChannel = ServerSocketChannel.open();
     private DNS dns;
-    public Server(int port) throws IOException {
-        dns = new DNS(port);
-        serverChannel.bind( new InetSocketAddress(port));
+    public Server(int port,Selector selector) throws IOException {
+        dns = new DNS(port, selector);
+        serverChannel.bind( new InetSocketAddress(port)); /// айпишник+ порт
+        serverChannel.configureBlocking(false);/// снимаем блокировку( неблокирующий ввод/вывод )
+        serverChannel.register(selector, SelectionKey.OP_ACCEPT, this);///цепляем сервер к селектору(теперь селектор слушает этот канал)
 
-
-    }
-    public void register(Selector selector) throws IOException {
-        serverChannel.configureBlocking(false);
-        serverChannel.register(selector, SelectionKey.OP_ACCEPT, this);
-        dns.register(selector);
 
     }
 
@@ -32,10 +28,14 @@ public class Server implements ConnectionHandler{
     public void accept(SelectionKey key) {
         try {
             if (!key.isValid()) {
-                this.close();
+                /// A key is valid upon creation and remains so until it is cancelled,
+                // its channel is closed, or its
+                // selector is closed.
+                close();
                 return;
             }
-            new Connection(serverChannel.accept(), dns).register(key.selector());
+            new Connection(serverChannel.accept(), dns,key.selector());
+            ///создаем новое подключение
         }
         catch (IOException ex) {
             ex.printStackTrace();

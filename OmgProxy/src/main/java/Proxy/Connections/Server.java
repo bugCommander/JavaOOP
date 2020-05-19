@@ -6,7 +6,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
 
-public class Server implements ConnectionHandler{
+public class Server implements Handler {
     private ServerSocketChannel serverChannel = ServerSocketChannel.open();
     private DNS dns;
     public Server(int port,Selector selector) throws IOException {
@@ -43,13 +43,6 @@ public class Server implements ConnectionHandler{
 
     }
 
-    @Override
-    public void read(SelectionKey key) {
 
-    }
 
-    @Override
-    public void write(SelectionKey key) {
-
-    }
 }

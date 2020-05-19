@@ -13,7 +13,7 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-public class Connection implements ConnectionHandler {
+public class Connection implements SocketHandler {
     private SocketChannel serverChannel = null;
 
     public SocketChannel getClientChannel() {

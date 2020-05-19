@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-public class DNS implements ConnectionHandler{
+public class DNS implements SocketHandler {
    private DatagramChannel resolverChannel = DatagramChannel.open();
    private InetSocketAddress DnsServerAddr;
 

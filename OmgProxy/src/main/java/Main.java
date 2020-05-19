@@ -1,3 +1,4 @@
+import Proxy.Proxy;
 import UI.*;
 import UI.Proxy.ProxyScene;
 import UI.SIgnAuth.Auth.AuthScene;
@@ -67,7 +68,8 @@ public class Main extends Application {
         authScene.initSwitchButton(authScene.getBack(),stage,mainScene.getScene());
         authScene.initLogbtn(userlist,stage,proxyScene.getScene());
         proxyScene.initSwitchButton(proxyScene.getBack(),stage,mainScene.getScene());
-
+        proxyScene.initTurnOnBtn();
+        proxyScene.initTurnOffBtn();
 
 
         stage.setScene(mainScene.getScene());

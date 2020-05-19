@@ -83,8 +83,8 @@ public class Connection implements SocketHandler {
 
     @Override
     public void close() throws IOException {
-        clientChannel.close();
-        serverChannel.close();
+     if(clientChannel !=null)   clientChannel.close();
+       if(serverChannel != null) serverChannel.close();
     }
 
 

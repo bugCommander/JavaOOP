@@ -11,6 +11,7 @@ import java.util.Set;
 public class Proxy implements AutoCloseable,Runnable {
     private Selector selector = Selector.open();
     private Server server;
+    private final int TIMEOT = 10000;
 
 
 
@@ -26,17 +27,23 @@ public class Proxy implements AutoCloseable,Runnable {
 
     @Override
     public void close() throws Exception {
-        System.out.println("close Proxy");
         selector.close();
 
     }
 
     @Override
     public void run() {
-        try {
+
             while (!Thread.currentThread().isInterrupted()) {
-                int count = selector.select();
-                if (count == 0) continue; //// если ни на одном из каналов,прослушиваемом селектором не произошло - скип
+                int count =0;
+                try {
+                   count = selector.select(10000);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                if (count == 0) {
+                   continue;
+                }; //// если ни на одном из каналов,прослушиваемом селектором не произошло - скип
                 Set<SelectionKey> modified = selector.selectedKeys();
                 for (SelectionKey selected : modified) {
                     Handler key  =  (Handler)selected.attachment();
@@ -47,10 +54,7 @@ public class Proxy implements AutoCloseable,Runnable {
                 }
                 modified.clear();
             }
-        }
-        catch (IOException ex) {
-            ex.printStackTrace();
-        }
+
 
     }
 }

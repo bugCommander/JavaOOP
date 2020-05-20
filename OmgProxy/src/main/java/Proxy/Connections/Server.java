@@ -17,7 +17,9 @@ public class Server implements Handler {
 
 
     }
-
+    public void closeDNS() throws IOException {
+        dns.close();
+    }
     @Override
     public void close() throws IOException {
         serverChannel.close();

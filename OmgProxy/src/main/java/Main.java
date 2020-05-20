@@ -17,7 +17,7 @@ import java.util.ArrayList;
 public class Main extends Application {
     AuthScene authScene;
     MainScene mainScene;
-    ProxyScene proxyScene;
+    static ProxyScene proxyScene;
     RegScene regScene;
     ArrayList<Image> images = new ArrayList<>();
     Users userlist = new Users();
@@ -46,6 +46,8 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
+        if(proxyScene.getServerThread().isAlive())
+        proxyScene.getServerThread().interrupt();
 
 
     }

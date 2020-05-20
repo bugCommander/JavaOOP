@@ -28,7 +28,8 @@ public class Proxy implements AutoCloseable,Runnable {
     @Override
     public void close() throws Exception {
         selector.close();
-
+        server.close();
+        server.closeDNS();
     }
 
     @Override
@@ -37,7 +38,7 @@ public class Proxy implements AutoCloseable,Runnable {
             while (!Thread.currentThread().isInterrupted()) {
                 int count =0;
                 try {
-                   count = selector.select(10000);
+                   count = selector.select(TIMEOT);
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -54,6 +55,11 @@ public class Proxy implements AutoCloseable,Runnable {
                 }
                 modified.clear();
             }
+        try {
+            close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 
     }

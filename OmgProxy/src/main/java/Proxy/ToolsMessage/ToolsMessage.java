@@ -13,7 +13,7 @@ public abstract class ToolsMessage {
     public static final byte IPv6 = (byte) 0x04;
 
     public static final byte DOMAIN_NAME = (byte) 0x03;
-
+    public static final byte AUTH = (byte)0x02;
 
 
     public static final byte COMMAND_NOT_SUPPORTED = 0x07;

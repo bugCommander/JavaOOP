@@ -11,14 +11,20 @@ import java.io.IOException;
 public class ProxyScene extends SceneSheet {
     Button turnOn;
     Button turnOff;
-    Thread serverThread;
 
+
+
+    Thread serverThread;
+    short flag = 1;
 
     public Button getBack() {
         return back;
     }
 
     Button back;
+    public Thread getServerThread() {
+        return serverThread;
+    }
 
     public ProxyScene(double h, double w, Image image) throws IOException {
         super(h, w, image);
@@ -33,11 +39,14 @@ public class ProxyScene extends SceneSheet {
 
 
    public void initTurnOnBtn( ) {
+
         turnOn.setOnAction(e -> {
             try {
-
-                    serverThread = new Thread(new Proxy(1080), "serverThread");
-                    serverThread.start();
+            if(flag == 1) {
+                serverThread = new Thread(new Proxy(1080), "serverThread");
+                serverThread.start();
+                flag = 0;
+            }
 
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -51,9 +60,10 @@ public class ProxyScene extends SceneSheet {
 
    public void initTurnOffBtn(){
         turnOff.setOnAction(e -> {
-
+        if(flag ==0)
                 System.out.println("close  thread");
                 serverThread.interrupt();
+                flag =1;
 
 
 

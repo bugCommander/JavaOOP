@@ -227,7 +227,7 @@ public class Connection implements SocketHandler {
 
 
     public boolean connectToServer(InetAddress address) {
-        System.out.println("Connect with Server" + address);
+        System.out.println("Connect with  " + address);
         try {
             serverChannel.connect(new InetSocketAddress(address, request.getDestPort()));
         } catch (IOException e) {

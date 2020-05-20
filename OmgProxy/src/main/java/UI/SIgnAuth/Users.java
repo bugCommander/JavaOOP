@@ -32,8 +32,12 @@ public class Users {
     }
 
     public CHECKER CheckAuth(String Login, String password){
-        if(!userMap.containsKey(Login) || !userMap.get(Login).equals(password)){
+        if(!userMap.containsKey(Login)){
             return CHECKER.INCORRECT_ALL;
+        }
+        if(!userMap.get(Login).equals(password)){
+            return CHECKER.INCORRECT_ALL;
+
         }
 
         return CHECKER.CORRECT;

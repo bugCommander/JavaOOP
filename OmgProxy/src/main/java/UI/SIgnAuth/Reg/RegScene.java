@@ -2,12 +2,14 @@ package UI.SIgnAuth.Reg;
 
 import UI.SIgnAuth.CHECKER;
 import UI.SIgnAuth.Users;
+import UI.SIgnAuth.WHO;
 import UI.SceneSheet;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 
 import javax.crypto.BadPaddingException;
@@ -23,11 +25,18 @@ public class RegScene extends SceneSheet {
     Label loginLabel;
     Label passwordLabel;
 
-    public Button getSignIn() {
-        return signIn;
+
+    public Button getAddUserBtn() {
+        return AddUserBtn;
     }
 
-    Button signIn;
+    Button AddUserBtn;
+
+    public Button getAddAdminBtn() {
+        return AddAdminBtn;
+    }
+
+    Button AddAdminBtn;
 
     public Button getBack() {
         return back;
@@ -41,17 +50,27 @@ public class RegScene extends SceneSheet {
         login = new TextField();
         passwordLabel = new Label("Password");
         password = new TextField();
-        signIn = new Button("Sign In");
+        AddAdminBtn = new Button("Create privileged user");
+        AddUserBtn = new Button("create user");
+
         VBox box = new VBox();
-        box.getChildren().addAll(back,loginLabel,login,passwordLabel,password,signIn);
+        FlowPane sigIn = new FlowPane();
+        sigIn.getChildren().addAll(AddUserBtn,AddAdminBtn);
+        box.getChildren().addAll(back,loginLabel,login,passwordLabel,password,sigIn);
         elements.getChildren().add(box);
     }
 
-    public void InitSigBtn(Users users){
-        signIn.setOnAction(event -> {
+    public void initSigBtn(Button btn, Users users, WHO who){
+        btn.setOnAction(event -> {
             try {
+                CHECKER state;
                 String text;
-                CHECKER state = users.addUsers(login.getText(),password.getText());
+                if(who == WHO.USER){
+                    state = users.addUsers(users.getUserMap(),login.getText(),password.getText(),users.getUserFile());
+
+                }else {
+                    state = users.addUsers(users.getAdminMap(),login.getText(),password.getText(),users.getAdminFile());
+                }
                 switch (state){
                     case CORRECT:{
                         text = "SUCCESS";

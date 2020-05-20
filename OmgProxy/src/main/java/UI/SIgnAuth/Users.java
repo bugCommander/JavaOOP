@@ -9,37 +9,57 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Users {
-    public Map<String, String> getUserMap() {
+    public HashMap<String, String> getUserMap() {
         return userMap;
     }
 
-    Map<String,String > userMap;
+    HashMap<String,String > userMap;
+
+    public HashMap<String, String> getAdminMap() {
+        return adminMap;
+    }
+
+    HashMap<String,String>  adminMap;
+
+    public File getUserFile() {
+        return userFile;
+    }
+
     File userFile;
+
+    public File getAdminFile() {
+        return adminFile;
+    }
+
+    File adminFile;
     PasswordCipher cipher;
 
 
     public Users() {
         userMap = new HashMap<>();
+        adminMap = new HashMap<>();
         userFile =new File("src/Userlist/users");
+        adminFile = new File("src/Userlist/admins.txt");
+
         cipher = new PasswordCipher("Wearemenmanlymen");
 
     }
 
     private boolean checkPass(String password){
-        return !password.contains(" ") && password.length() >= 3 && !password.contains("/");
+        return !password.contains(" ") && password.length() >= 1 &&password.length() <=255 && !password.contains("/");
 
 
     }
     private  boolean checkLogin(String login){
-        return !login.contains(" ") && login.length() >= 3 && !login.contains("/");
+        return !login.contains(" ") && login.length() >= 1 && login.length() < 255 && !login.contains("/");
 
     }
 
     public CHECKER CheckAuth(String Login, String password){
-        if(!userMap.containsKey(Login)){
+        if(!adminMap.containsKey(Login)){
             return CHECKER.INCORRECT_ALL;
         }
-        if(!userMap.get(Login).equals(password)){
+        if(!adminMap.get(Login).equals(password)){
             return CHECKER.INCORRECT_ALL;
 
         }
@@ -47,7 +67,7 @@ public class Users {
         return CHECKER.CORRECT;
     }
 
-    public CHECKER addUsers(String login, String password) throws IOException, IllegalBlockSizeException, java.security.InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+    public CHECKER addUsers(HashMap<String,String> map,String login, String password,File curFile) throws IOException, IllegalBlockSizeException, java.security.InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
         boolean loginFlag = checkLogin(login);
         boolean passwordFlag = checkPass(password);
         boolean incorectALL = !loginFlag & !passwordFlag;
@@ -63,13 +83,13 @@ public class Users {
 
 
 
-        if(userMap.containsKey(login)){
+        if(adminMap.containsKey(login) || userMap.containsKey(login)){
             return CHECKER.USER_EXIST;
         }
 
 
-        userMap.put(login,cipher.encrypt(password));
-        Writer magicWriter = new FileWriter(userFile,true);
+        map.put(login,password);
+        Writer magicWriter = new FileWriter(curFile,true);
 
         magicWriter.write(login+"///"+cipher.encrypt(password)+"\n");
         magicWriter.close();
@@ -78,10 +98,29 @@ public class Users {
 
 
     }
+    public void putDataInFile(HashMap<String,String>map, String pathname) throws IOException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+        File file = new File(pathname);
+        FileWriter magicWriter = new FileWriter(file,false);
+        magicWriter.close();
+
+        FileWriter writer = new FileWriter(file,true);
+        for(Map.Entry<String, String> entry : map.entrySet()) {
+            String login = entry.getKey();
+            String  password = entry.getValue();
+            writer.write(login+"///"+cipher.encrypt(password)+"\n");
+
+            // do what you have to do here
+            // In your case, another loop.
+        }
+        writer.close();
 
 
-    public   void getDataFromFile() throws FileNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
-        File file = new File("src/Userlist/users");
+
+    }
+
+
+    public   void getDataFromFile(HashMap<String,String>map, String pathname) throws FileNotFoundException, IllegalBlockSizeException, InvalidKeyException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException {
+        File file = new File(pathname);
         Scanner magicReader = new Scanner(file);
         String delimeter = "///";
         String []userdata;
@@ -89,7 +128,7 @@ public class Users {
             String aux = magicReader.next();
             userdata = aux.split(delimeter);
             userdata[1] = cipher.decrypt(userdata[1]);
-            userMap.put(userdata[0], userdata[1]);
+            map.put(userdata[0], userdata[1]);
             System.out.println(userdata[0] + " " + userdata[1]);
         }
         magicReader.close();

@@ -1,5 +1,7 @@
 package Proxy.ToolsMessage;
 
+import Proxy.MOD;
+
 import java.nio.ByteBuffer;
 
 public class Hello extends ToolsMessage {
@@ -18,16 +20,10 @@ public class Hello extends ToolsMessage {
         }
     }
 
-    public boolean hasMethod() {
-        for (int i = 0; i < data[1]; ++i) {
-            if (AUTH == data[i + 2]) {
-                return true;
-            }
-        }
-        return false;
-    }
 
-    public  boolean hasMethod(byte curMethod){
+
+    public  boolean hasMethod(MOD mod){
+        byte curMethod = getCurrentMethod(mod);
         for (int i = 0; i < data[1]; ++i) {
             if (curMethod == data[i + 2]) {
                 return true;

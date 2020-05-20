@@ -4,9 +4,6 @@ import java.nio.ByteBuffer;
 import java.util.HashMap;
 
 public class Negotiaion extends ToolsMessage{
-public final byte X = 0x01;
-public final byte SUCCESS = 0x00;
-public final byte DENIED = 0x05;
 
     public byte[] getResponce() {
         return responce;

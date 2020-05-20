@@ -1,5 +1,6 @@
 package Proxy.Connections;
 
+import Proxy.MOD;
 import Proxy.ToolsMessage.*;
 
 import java.io.IOException;
@@ -11,9 +12,9 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Map;
 
 public class Connection implements SocketHandler {
+    private MOD mod;
     private SocketChannel serverChannel = null;
     private HashMap<String,String> users;
     public SocketChannel getClientChannel() {
@@ -45,13 +46,13 @@ public class Connection implements SocketHandler {
     private ResponseOnRequest response = null;
     private Negotiaion responseShit = null;
 
-    public Connection(SocketChannel aux_client, DNS aux_dns,Selector selector,HashMap<String,String> users) throws IOException {
+    public Connection(SocketChannel aux_client, DNS aux_dns,Selector selector,HashMap<String,String> users,MOD aux_mod) throws IOException {
         dns = aux_dns;
         this.users = users;
         clientChannel = aux_client;
         clientChannel.configureBlocking(false);
         clientChannel.register(selector, SelectionKey.OP_READ, this);
-
+        mod = aux_mod;
 
 
     }
@@ -184,13 +185,14 @@ public class Connection implements SocketHandler {
         switch (state) {
             case HELLO: {
                 if (writeBuff == null) {
-                    writeBuff = ByteBuffer.wrap(MessageReader.getResponse(hello));
+                    writeBuff = ByteBuffer.wrap(MessageReader.getResponse(hello,mod));
                 }
                 if (writeTo(clientChannel, writeBuff)) {
                     writeBuff = null;
-                    if (hello.hasMethod()) {
+                    if (hello.hasMethod(mod)) {
                         key.interestOps(SelectionKey.OP_READ);
-                        state = State.NEGOTIATION;
+                            state = mod == MOD.AUTH?State.NEGOTIATION:State.REQUEST;
+
                     } else {
                         System.err.println("Not support ffs");
                         this.close();

@@ -18,8 +18,9 @@ public class Proxy implements AutoCloseable,Runnable {
 
 
 
-    public Proxy(int port, HashMap<String,String> users) throws IOException {
-        server = new Server(port,selector,users);
+
+    public Proxy(int port, HashMap<String,String> users,MOD mod) throws IOException {
+        server = new Server(port,selector,users,mod);
 
 
 

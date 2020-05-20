@@ -1,6 +1,7 @@
 package Proxy.ToolsMessage;
 
 import Proxy.Connections.Connection;
+import Proxy.MOD;
 
 import java.io.IOException;
 
@@ -50,14 +51,14 @@ public class MessageReader extends ToolsMessage {
         return null;
     }
 
-    static public byte[] getResponse(Hello hello) {
+    static public byte[] getResponse(Hello hello, MOD mod) {
         byte[] data = new byte[2];
         data[0] = SOCKS_5;
-        if (!hello.hasMethod()) {
+        if (!hello.hasMethod(mod)) {
             data[1] = NO_ACCEPTABLE_METHODS;
         }
         else {
-            data[1] = AUTH;
+            data[1] = ToolsMessage.getCurrentMethod(mod);
         }
         return data;
     }

@@ -1,8 +1,9 @@
-import Proxy.Proxy;
-import UI.*;
 import UI.Proxy.ProxyScene;
 import UI.SIgnAuth.Auth.AuthScene;
+import UI.SIgnAuth.Auth.MainScene;
+import UI.SIgnAuth.Auth.SettingsScene;
 import UI.SIgnAuth.Reg.RegScene;
+import UI.SIgnAuth.WHO;
 import UI.SIgnAuth.Users;
 import javafx.application.Application;
 import javafx.scene.image.Image;
@@ -10,7 +11,6 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 
 
 public class Main extends Application {
@@ -18,8 +18,9 @@ public class Main extends Application {
     MainScene mainScene;
     static ProxyScene proxyScene;
     RegScene regScene;
+    SettingsScene settingsScene;
     ArrayList<Image> images = new ArrayList<>();
-    Users userlist = new Users();
+    Users userList = new Users();
     final  double H = 400;
     final  double W = 400;
 
@@ -29,8 +30,8 @@ public class Main extends Application {
     @Override
     public void init() throws Exception {
         super.init();
-        userlist.getDataFromFile();
-
+        userList.getDataFromFile(userList.getUserMap(),userList.getUserFile().getCanonicalPath());
+        userList.getDataFromFile(userList.getAdminMap(),userList.getAdminFile().getCanonicalPath());
         images.add(new Image("file:src/background/socks.jpg", W, H, false,true));
         ///add reg background;
         images.add(new Image("file:src/background/delaem-igrushku-iz-noska-3.png",W,H,false,true));
@@ -57,23 +58,25 @@ public class Main extends Application {
         stage.setTitle("ProxyServerApp");
         stage.setHeight(H);
         stage.setWidth(W);
+        authScene = new AuthScene(stage.getMaxHeight(),stage.getMaxWidth(),images.get(2));
         mainScene = new MainScene(stage.getMaxHeight(),stage.getMaxWidth(),images.get(0));
         regScene = new RegScene(stage.getMaxHeight(),stage.getMaxWidth(),images.get(1));
-        authScene = new AuthScene(stage.getMaxHeight(),stage.getMaxWidth(),images.get(2));
         proxyScene = new ProxyScene(stage.getMaxHeight(),stage.getMaxWidth(),images.get(3));
+        settingsScene = new SettingsScene(stage.getMaxHeight(),stage.getMaxWidth(),images.get(0));
+        authScene.initLogbtn(userList,stage,mainScene.getScene());
         mainScene.initSwitchButton(mainScene.getRegBtn(),stage,regScene.getScene());
-        mainScene.initSwitchButton(mainScene.getLogBtn(),stage,authScene.getScene());
-        mainScene.initSwitchButton(mainScene.getTryBtn(),stage,proxyScene.getScene());
-        regScene.initSwitchButton(regScene.getBack(),stage,mainScene.getScene());
-        regScene.InitSigBtn(userlist);
-        authScene.initSwitchButton(authScene.getBack(),stage,mainScene.getScene());
-        authScene.initLogbtn(userlist,stage,proxyScene.getScene());
+        mainScene.initSwitchButton(mainScene.getSettingsBtn(),stage,settingsScene.getScene());
+        mainScene.initSwitchButton(mainScene.getProxyBtn(),stage,proxyScene.getScene());
         proxyScene.initSwitchButton(proxyScene.getBack(),stage,mainScene.getScene());
-        proxyScene.initTurnOnBtn((HashMap<String, String>) userlist.getUserMap());
+        proxyScene.initTurnOnBtn(userList.getUserMap());
         proxyScene.initTurnOffBtn();
+        proxyScene.initSelector();
+        regScene.initSwitchButton(regScene.getBack(),stage,mainScene.getScene());
+        regScene.initSigBtn(regScene.getAddAdminBtn(),userList, WHO.ADMIN);
+        regScene.initSigBtn(regScene.getAddUserBtn(),userList,WHO.USER);
+        settingsScene.initSwitchButton(settingsScene.getBack(),stage,mainScene.getScene());
 
-
-        stage.setScene(mainScene.getScene());
+        stage.setScene(authScene.getScene());
 
         stage.show();
     }

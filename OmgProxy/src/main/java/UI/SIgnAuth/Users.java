@@ -9,6 +9,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 public class Users {
+    public Map<String, String> getUserMap() {
+        return userMap;
+    }
+
     Map<String,String > userMap;
     File userFile;
     PasswordCipher cipher;

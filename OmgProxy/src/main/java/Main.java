@@ -10,8 +10,7 @@ import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
-
-
+import java.util.HashMap;
 
 
 public class Main extends Application {
@@ -70,7 +69,7 @@ public class Main extends Application {
         authScene.initSwitchButton(authScene.getBack(),stage,mainScene.getScene());
         authScene.initLogbtn(userlist,stage,proxyScene.getScene());
         proxyScene.initSwitchButton(proxyScene.getBack(),stage,mainScene.getScene());
-        proxyScene.initTurnOnBtn();
+        proxyScene.initTurnOnBtn((HashMap<String, String>) userlist.getUserMap());
         proxyScene.initTurnOffBtn();
 
 

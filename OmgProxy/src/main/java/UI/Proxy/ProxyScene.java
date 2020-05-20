@@ -7,6 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.image.Image;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 public class ProxyScene extends SceneSheet {
     Button turnOn;
@@ -38,12 +39,12 @@ public class ProxyScene extends SceneSheet {
     }
 
 
-   public void initTurnOnBtn( ) {
+   public void initTurnOnBtn(HashMap<String,String> users) {
 
         turnOn.setOnAction(e -> {
             try {
             if(flag == 1) {
-                serverThread = new Thread(new Proxy(1080), "serverThread");
+                serverThread = new Thread(new Proxy(1080,users), "serverThread");
                 serverThread.start();
                 flag = 0;
             }

@@ -5,11 +5,14 @@ import java.net.InetSocketAddress;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
+import java.util.HashMap;
 
 public class Server implements Handler {
     private ServerSocketChannel serverChannel = ServerSocketChannel.open();
     private DNS dns;
-    public Server(int port,Selector selector) throws IOException {
+    private HashMap<String,String> users;
+    public Server(int port,Selector selector,HashMap<String,String> users) throws IOException {
+        this.users = users;
         dns = new DNS(port, selector);
         serverChannel.bind( new InetSocketAddress(port)); /// айпишник+ порт
         serverChannel.configureBlocking(false);/// снимаем блокировку( неблокирующий ввод/вывод )
@@ -36,7 +39,7 @@ public class Server implements Handler {
                 close();
                 return;
             }
-            new Connection(serverChannel.accept(), dns,key.selector());
+            new Connection(serverChannel.accept(), dns,key.selector(),users);
             ///создаем новое подключение
         }
         catch (IOException ex) {

@@ -2,7 +2,7 @@ package Proxy.ToolsMessage;
 
 import java.nio.ByteBuffer;
 
-public class HelloRequest extends ToolsMessage {
+public class Hello extends ToolsMessage {
 
 
 
@@ -10,7 +10,7 @@ public class HelloRequest extends ToolsMessage {
 
 
 
-    public HelloRequest(ByteBuffer buffer) {
+    public Hello(ByteBuffer buffer) {
         super(new byte[buffer.limit()]);
         buffer.get(data);
         if (data[1] + 2 != data.length) {
@@ -20,11 +20,21 @@ public class HelloRequest extends ToolsMessage {
 
     public boolean hasMethod() {
         for (int i = 0; i < data[1]; ++i) {
-            if (NO_AUTHENTICATION == data[i + 2]) {
+            if (AUTH == data[i + 2]) {
                 return true;
             }
         }
         return false;
+    }
+
+    public  boolean hasMethod(byte curMethod){
+        for (int i = 0; i < data[1]; ++i) {
+            if (curMethod == data[i + 2]) {
+                return true;
+            }
+        }
+        return false;
+
     }
 
     public static boolean isCorrectSizeOfMessage(ByteBuffer data) {

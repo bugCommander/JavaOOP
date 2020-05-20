@@ -9,18 +9,33 @@ public class MessageReader extends ToolsMessage {
         super(buff);
     }
 
-    static public HelloRequest readHelloMessage(Connection session) throws IOException {
+    static public Hello readHelloMessage(Connection session) throws IOException { //// читает приветствие от клиента
+        /// проверяя на корректность  - вслучае успеха возвращает прочитанное сообщение
         int read_bytes = session.getClientChannel().read(session.getReadBuff());
         if (read_bytes == -1 ) {
             session.close();
             return null;
         }
-        if (HelloRequest.isCorrectSizeOfMessage(session.getReadBuff())) {
+        if (Hello.isCorrectSizeOfMessage(session.getReadBuff())) {
             session.setReadBuff(session.getReadBuff().flip());
-            return new HelloRequest(session.getReadBuff());
+            return new Hello(session.getReadBuff());
         }
         return null;
     }
+
+    static public Negotiaion readSubNegotiation(Connection session) throws IOException {
+        int read_bytes = session.getClientChannel().read(session.getReadBuff());
+        if (read_bytes == -1 ) {
+            System.out.println("get null");
+            session.close();
+            return null;
+        }
+        session.setReadBuff(session.getReadBuff().flip());
+
+        return new Negotiaion(session.getReadBuff());
+
+    }
+
 
     static public Request readRequestMessage(Connection session) throws IOException {
         int read_bytes = session.getClientChannel().read(session.getReadBuff());
@@ -35,14 +50,14 @@ public class MessageReader extends ToolsMessage {
         return null;
     }
 
-    static public byte[] getResponse(HelloRequest hello) {
+    static public byte[] getResponse(Hello hello) {
         byte[] data = new byte[2];
         data[0] = SOCKS_5;
         if (!hello.hasMethod()) {
             data[1] = NO_ACCEPTABLE_METHODS;
         }
         else {
-            data[1] = NO_AUTHENTICATION;
+            data[1] = AUTH;
         }
         return data;
     }

@@ -1,9 +1,6 @@
 package Proxy.Connections;
 
-import Proxy.ToolsMessage.HelloRequest;
-import Proxy.ToolsMessage.MessageReader;
-import Proxy.ToolsMessage.Request;
-import Proxy.ToolsMessage.ResponseOnRequest;
+import Proxy.ToolsMessage.*;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -12,10 +9,13 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Connection implements SocketHandler {
     private SocketChannel serverChannel = null;
-
+    private HashMap<String,String> users;
     public SocketChannel getClientChannel() {
         return clientChannel;
     }
@@ -40,16 +40,18 @@ public class Connection implements SocketHandler {
     private ByteBuffer readBuff = ByteBuffer.allocateDirect(BUFFER_SIZE);
     private ByteBuffer writeBuff = null;
 
-    private HelloRequest hello = null;
+    private Hello hello = null;
     private Request request = null;
     private ResponseOnRequest response = null;
+    private Negotiaion responseShit = null;
 
-
-    public Connection(SocketChannel aux_client, DNS aux_dns,Selector selector) throws IOException {
+    public Connection(SocketChannel aux_client, DNS aux_dns,Selector selector,HashMap<String,String> users) throws IOException {
         dns = aux_dns;
+        this.users = users;
         clientChannel = aux_client;
         clientChannel.configureBlocking(false);
         clientChannel.register(selector, SelectionKey.OP_READ, this);
+
 
 
     }
@@ -108,8 +110,21 @@ public class Connection implements SocketHandler {
                 hello = MessageReader.readHelloMessage(this);
                 if (hello == null) return;
                 key.interestOps(SelectionKey.OP_WRITE);
+
                 readBuff.clear();
                 break;
+            }
+            case NEGOTIATION:{
+                System.out.println("get Client negotiation");
+                responseShit = MessageReader.readSubNegotiation(this);
+                if (responseShit == null) return;
+                System.out.println(Arrays.toString(responseShit.getData()));
+                key.interestOps(SelectionKey.OP_WRITE);
+                readBuff.clear();
+                break;
+
+
+
             }
             case REQUEST: {
                 System.out.println("Get request");
@@ -175,14 +190,38 @@ public class Connection implements SocketHandler {
                     writeBuff = null;
                     if (hello.hasMethod()) {
                         key.interestOps(SelectionKey.OP_READ);
-                        state = State.REQUEST;
+                        state = State.NEGOTIATION;
                     } else {
-                        System.err.println("Not support");
+                        System.err.println("Not support ffs");
                         this.close();
                     }
                     hello = null;
                 }
                 break;
+            }
+            case NEGOTIATION:{
+                if(writeBuff == null){
+                    responseShit.response(users);
+                    writeBuff = ByteBuffer.wrap(responseShit.getResponce());
+                }
+                if(writeTo(clientChannel, writeBuff)) {
+                    writeBuff = null;
+                    if (responseShit.hasSuccess()) {
+                        key.interestOps(SelectionKey.OP_READ);
+                        state = State.REQUEST;
+                    } else {
+                        System.err.println("DENIED");
+                        this.close();
+                    }
+                    responseShit = null;
+                }
+                break;
+
+
+
+
+
+
             }
             case REQUEST: {
                 if (writeBuff == null) {
@@ -193,7 +232,7 @@ public class Connection implements SocketHandler {
                     writeBuff = null;
                     if (!request.isCommand(Request.CONNECT_TCP) || serverChannel == null) {
                         this.close();
-                        System.out.println("Not support");
+                        System.out.println("Not support, please conntect TCP or dafaq");
                     } else {
                         key.interestOps(SelectionKey.OP_READ);
                         serverChannel.register(key.selector(), SelectionKey.OP_READ, this);
@@ -281,6 +320,7 @@ public class Connection implements SocketHandler {
     private enum State {
         HELLO,
         REQUEST,
-        MESSAGE
+        MESSAGE,
+        NEGOTIATION;
     }
 }

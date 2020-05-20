@@ -1,7 +1,11 @@
 package Proxy.ToolsMessage;
 
 public abstract class ToolsMessage {
-      byte[] data;
+    public byte[] getData() {
+        return data;
+    }
+
+    byte[] data;
       ToolsMessage(byte[] buff){
           data = buff;
 

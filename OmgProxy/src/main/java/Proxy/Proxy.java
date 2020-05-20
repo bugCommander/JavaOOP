@@ -6,6 +6,7 @@ import Proxy.Connections.Server;
 import java.io.IOException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
+import java.util.HashMap;
 import java.util.Set;
 
 public class Proxy implements AutoCloseable,Runnable {
@@ -17,8 +18,8 @@ public class Proxy implements AutoCloseable,Runnable {
 
 
 
-    public Proxy(int port) throws IOException {
-        server = new Server(port,selector);
+    public Proxy(int port, HashMap<String,String> users) throws IOException {
+        server = new Server(port,selector,users);
 
 
 

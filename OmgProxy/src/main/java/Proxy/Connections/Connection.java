@@ -44,7 +44,7 @@ public class Connection implements SocketHandler {
     private Hello hello = null;
     private Request request = null;
     private ResponseOnRequest response = null;
-    private Negotiaion responseShit = null;
+    private Negotiaion negotiaion = null;
 
     public Connection(SocketChannel aux_client, DNS aux_dns,Selector selector,HashMap<String,String> users,MOD aux_mod) throws IOException {
         dns = aux_dns;
@@ -117,9 +117,9 @@ public class Connection implements SocketHandler {
             }
             case NEGOTIATION:{
                 System.out.println("get Client negotiation");
-                responseShit = MessageReader.readSubNegotiation(this);
-                if (responseShit == null) return;
-                System.out.println(Arrays.toString(responseShit.getData()));
+                negotiaion = MessageReader.readSubNegotiation(this);
+                if (negotiaion == null) return;
+                System.out.println(Arrays.toString(negotiaion.getData()));
                 key.interestOps(SelectionKey.OP_WRITE);
                 readBuff.clear();
                 break;
@@ -203,19 +203,19 @@ public class Connection implements SocketHandler {
             }
             case NEGOTIATION:{
                 if(writeBuff == null){
-                    responseShit.response(users);
-                    writeBuff = ByteBuffer.wrap(responseShit.getResponce());
+                    negotiaion.response(users);
+                    writeBuff = ByteBuffer.wrap(negotiaion.getResponce());
                 }
                 if(writeTo(clientChannel, writeBuff)) {
                     writeBuff = null;
-                    if (responseShit.hasSuccess()) {
+                    if (negotiaion.hasSuccess()) {
                         key.interestOps(SelectionKey.OP_READ);
                         state = State.REQUEST;
                     } else {
                         System.err.println("DENIED");
                         this.close();
                     }
-                    responseShit = null;
+                    negotiaion = null;
                 }
                 break;
 

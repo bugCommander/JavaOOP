@@ -15,6 +15,11 @@ public class Users {
 
     HashMap<String,String > userMap;
 
+    public HashMap<String, String> getRootMap() {
+        return rootMap;
+    }
+
+    public  HashMap<String,String>rootMap;
     public HashMap<String, String> getAdminMap() {
         return adminMap;
     }
@@ -31,16 +36,29 @@ public class Users {
         return adminFile;
     }
 
+    public File getRootFile() {
+        return rootFile;
+    }
+
+    File rootFile;
+
     File adminFile;
     PasswordCipher cipher;
+
+    public boolean isRootFlag() {
+        return rootFlag;
+    }
+
+    boolean rootFlag = true;
 
 
     public Users() {
         userMap = new HashMap<>();
         adminMap = new HashMap<>();
+        rootMap = new HashMap<>();
         userFile =new File("src/Userlist/users");
         adminFile = new File("src/Userlist/admins.txt");
-
+        rootFile = new File("src/Userlist/root.txt");
         cipher = new PasswordCipher("Wearemenmanlymen");
 
     }
@@ -56,12 +74,23 @@ public class Users {
     }
 
     public CHECKER CheckAuth(String Login, String password){
-        if(!adminMap.containsKey(Login)){
-            return CHECKER.INCORRECT_ALL;
-        }
-        if(!adminMap.get(Login).equals(password)){
-            return CHECKER.INCORRECT_ALL;
+        if(!Login.equals("root")) {
+            rootFlag= false;
+            if (!adminMap.containsKey(Login)) {
+                return CHECKER.INCORRECT_ALL;
+            }
+            if (!adminMap.get(Login).equals(password)) {
+                return CHECKER.INCORRECT_ALL;
 
+            }
+        } else {
+            if (!rootMap.containsKey(Login)) {
+                return CHECKER.INCORRECT_ALL;
+            }
+            if (!rootMap.get(Login).equals(password)) {
+                return CHECKER.INCORRECT_ALL;
+
+            }
         }
 
         return CHECKER.CORRECT;
@@ -109,8 +138,7 @@ public class Users {
             String  password = entry.getValue();
             writer.write(login+"///"+cipher.encrypt(password)+"\n");
 
-            // do what you have to do here
-            // In your case, another loop.
+
         }
         writer.close();
 
